@@ -35,8 +35,8 @@ public class FileParser {
         Arrays.sort(spk, new spkSorter());
         spkIdx = 0;
         System.gc();
-        double trialStart = 0;
-        double trialEnd = 0;
+        double baselineStart = 0;
+        double secondOdorEnd = 0;
         EventType[] responses = {EventType.FalseAlarm, EventType.CorrectRejection, EventType.Miss, EventType.Hit};
         EventType[] odors = {EventType.OdorA, EventType.OdorB};
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
@@ -59,12 +59,12 @@ public class FileParser {
                 case 61:
                     switch (evt[3]) {
                         case 0:
-                            if (behaviorSession.size() < 20) {
-                                miceDay.removeSession(sessionIdx);
-                            } else {
+//                            if (behaviorSession.size() < 20) {
+//                                miceDay.removeSession(sessionIdx);
+//                            } else {
                                 behaviorSessions.add(behaviorSession);
                                 behaviorSession = new ArrayList<>();
-                            }
+//                            }
                             sessionIdx++;
                             break;
                     }
@@ -75,7 +75,7 @@ public class FileParser {
                 case 7:
                     response = responses[evt[2] - 4];
                     if (firstOdor != EventType.unknown && secondOdor != EventType.unknown) {
-                        sortSpikes(spk, miceDay, trialStart, trialEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
+                        sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
                         EventType[] behaviorTrial = {firstOdor, secondOdor, response};
                         behaviorSession.add(behaviorTrial);
                     }
@@ -88,10 +88,10 @@ public class FileParser {
                     if (evt[3] != 0) {
                         if (firstOdor == EventType.unknown) {
                             firstOdor = odors[evt[2] - 9];
-                            trialStart = evtDouble[0] - 1;
+                            baselineStart = evtDouble[0] - 1;
                         } else {
                             secondOdor = odors[evt[2] - 9];
-                            trialEnd = evtDouble[0] + 1;//
+                            secondOdorEnd = evtDouble[0] + 1;//
                         }
                     }
                     break;
@@ -102,17 +102,17 @@ public class FileParser {
         return miceDay;
     }
 
-    private void sortSpikes(double[][] spk, MiceDay miceDay, double trialStart, double trialEnd, EventType firstOdor, EventType secondOdor, EventType response, int sessionIdx, int trialIdx) {
-        while (spkIdx < spk.length && spk[spkIdx][2] < trialEnd) {
-            if (spk[spkIdx][2] > trialStart) {
+    private void sortSpikes(double[][] spk, MiceDay miceDay, double baselineStart, double secondOdorEnd, EventType firstOdor, EventType secondOdor, EventType response, int sessionIdx, int trialIdx) {
+        while (spkIdx < spk.length && spk[spkIdx][2] < secondOdorEnd) {
+            if (spk[spkIdx][2] > baselineStart) {
                 Trial currentTrial = miceDay.getTetrode((int) Math.round(spk[spkIdx][0]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1]))
                         .getTrial(sessionIdx, trialIdx);
 
                 if (!currentTrial.isSet()) {
-                    currentTrial.setTrialParameter(firstOdor, secondOdor, response,trialEnd-trialStart);
+                    currentTrial.setTrialParameter(firstOdor, secondOdor, response,secondOdorEnd-baselineStart);
                 }
-                currentTrial.addSpk(spk[spkIdx][2] - trialStart - 1);
+                currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;
             }
             spkIdx++;
         }
@@ -126,4 +126,6 @@ public class FileParser {
         }
     }
 
+    
+    
 }

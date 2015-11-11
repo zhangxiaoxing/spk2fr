@@ -16,10 +16,37 @@ import java.util.HashMap;
 public class MiceDay {
 
     final private HashMap<Integer, Tetrode> tetrodes;
-    private ArrayList<ArrayList<EventType[]>> behaviorSessions;
+    private ArrayList<ArrayList<EventType[]>> behaviorSessions; //EventType[] behaviorTrial = {firstOdor, secondOdor, response};
 
     public MiceDay() {
         tetrodes = new HashMap<>();
+    }
+
+    public boolean isWellTrained() {
+        ArrayList<Boolean> results = new ArrayList<>();
+        for (ArrayList<EventType[]> session : behaviorSessions) {
+            for (EventType[] evt : session) {
+                if (evt[2] == EventType.Hit || evt[2] == EventType.CorrectRejection) {
+                    results.add(Boolean.TRUE);
+                } else {
+                    results.add(Boolean.FALSE);
+                }
+                int sumTrial = results.size();
+                if (sumTrial >= 40) {
+                    int count = 0;
+                    for (int i = sumTrial - 1; i > sumTrial - 40; i--) {
+                        if (results.get(i)) {
+                            count++;
+                            if (count > 31) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        return false;
     }
 
     public Tetrode getTetrode(int idx) {
@@ -52,19 +79,6 @@ public class MiceDay {
         }
         return count;
     }
-    
-    
-
-// 4 removal    
-//    public Double[][][] getFiringTSByOdor(int odor) { //time stamp
-//        ArrayList<Double[][]> allUnits = new ArrayList<>();
-//        for (Tetrode tetrode : tetrodes.values()) {
-//            for (SingleUnit unit : tetrode.getUnits()) {
-//                allUnits.add(unit.getFiringTimesByOdor(odor));
-//            }
-//        }
-//        return allUnits.toArray(new Double[allUnits.size()][][]);
-//    }
 
     public void setBehaviorSessions(ArrayList<ArrayList<EventType[]>> behaviorSessions) {
         this.behaviorSessions = behaviorSessions;

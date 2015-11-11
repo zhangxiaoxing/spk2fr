@@ -13,10 +13,10 @@ import java.util.ArrayList;
  * @author Libra
  */
 public class Spk2fr {
-    
+
     final private FileParser fp;
     private MiceDay miceDay;
-    private boolean wellTrain=false;
+    private boolean wellTrainOnly = false;
 
     /**
      * @param args the command line arguments
@@ -24,11 +24,11 @@ public class Spk2fr {
     public static void main(String[] args) {
         // TODO code application logic here
     }
-    
+
     public Spk2fr() {
         fp = new FileParser();
     }
-    
+
     public void spk2fr(double[][] evts, double[][] spk) {
         miceDay = fp.processFile(evts, spk);
         for (Tetrode t : miceDay.getTetrodes()) {
@@ -65,13 +65,14 @@ public class Spk2fr {
 //        }
 //        return baseTS.toArray(new double[baseTS.size()][]);
 //    }
-    
-    
-    
-        /*
-    For temporary check only
-    */
+    /*
+     For temporary check only
+     */
     public double[][][][] getTS() {
+        if (wellTrainOnly && !miceDay.isWellTrained()) {
+            return null;
+        }
+
         ArrayList<double[][][]> TS = new ArrayList<>();
         for (Tetrode tetrode : miceDay.getTetrodes()) {
             for (SingleUnit unit : tetrode.getUnits()) {
@@ -80,9 +81,13 @@ public class Spk2fr {
         }
         return TS.toArray(new double[TS.size()][][][]);
     }
-    
-    
+
     public double[][][] getSampleFringRateByOdor(float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
+        if (wellTrainOnly && !miceDay.isWellTrained()) {
+//            System.out.println("Not Well Trained");
+            return null;
+        }
+
         ArrayList<double[][]> frs = new ArrayList<>();
         int odorATrials = miceDay.countCorrectTrialByFirstOdor(0);
         int odorBTrials = miceDay.countCorrectTrialByFirstOdor(1);
@@ -93,11 +98,11 @@ public class Spk2fr {
         }
         return frs.toArray(new double[frs.size()][][]);
     }
-    
+
     public int getTrialCountByFirstOdor(int odor) {
         return miceDay.countCorrectTrialByFirstOdor(odor);
     }
-    
+
     public ArrayList<String> listFiles(String rootPath, String[] elements) {
         ArrayList<String> fileList = new ArrayList<>();
         if (rootPath == null) {
@@ -108,7 +113,7 @@ public class Spk2fr {
             return null;
         }
         File[] list = root.listFiles();
-        
+
         if (list != null) {
             for (File f : list) {
                 if (f.isDirectory()) {
@@ -116,10 +121,10 @@ public class Spk2fr {
                 } else {
                     String fileName = f.getName();
                     boolean add = true;
-                    
+
                     if (elements.length > 0) {
                         for (String element : elements) {
-                            
+
                             if (element.startsWith("-")
                                     ? fileName.contains(element.substring(1))
                                     : !fileName.contains(element)) {
@@ -136,8 +141,8 @@ public class Spk2fr {
         return fileList;
     }
 
-    public void setWellTrain(boolean wellTrain) {
-        this.wellTrain = wellTrain;
+    public void setWellTrainOnly(boolean wellTrain) {
+        this.wellTrainOnly = wellTrain;
     }
-    
+
 }
