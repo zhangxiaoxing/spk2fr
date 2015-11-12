@@ -73,16 +73,13 @@ public class SingleUnit {
      */
     public double[][] getSampleFR(ClassifyType cType, int typeATrialCount, int typeBTrialCount, float binStart, float binSize, float binEnd, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
-        double[] stats;
-        double meanBaseFR=0;
-        double stdBaseFR=0;
+        double[] stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
+        double meanBaseFR = stats[0];
+        double stdBaseFR = stats[1];
         ArrayList<Trial> typeAPool = new ArrayList<>();
         ArrayList<Trial> typeBPool = new ArrayList<>();
         switch (cType) {
             case BY_ODOR:
-                stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
-                meanBaseFR = stats[0];
-                stdBaseFR = stats[1];
                 for (Trial trial : this.trialPool) {
                     if (trial.firstOdorIs(0) && trial.isCorrect()) {
                         typeAPool.add(trial);
@@ -92,9 +89,6 @@ public class SingleUnit {
                 }
                 break;
             case BY_CORRECT:
-                stats = getBaselineStats(cType, this.trialPool, typeATrialCount);
-                meanBaseFR = stats[0];
-                stdBaseFR = stats[1];
                 for (Trial trial : this.trialPool) {
                     if (trial.isCorrect()) {
                         typeAPool.add(trial);
@@ -230,17 +224,14 @@ public class SingleUnit {
                 break;
             case BY_CORRECT:
                 for (Trial trial : trialPool) {
-                    if (trial.isCorrect()) {
-                        for (Double d : trial.getSpikesList()) {
-                            if (d < 0) {
-                                baselineTSCount[trialIdx]++;
-                            } else {
-                                break;
-                            }
+                    for (Double d : trial.getSpikesList()) {
+                        if (d < 0) {
+                            baselineTSCount[trialIdx]++;
+                        } else {
+                            break;
                         }
-                        trialIdx++;
-//                    System.out.println(totalTrialCount+", "+trialIdx);
                     }
+                    trialIdx++;
                 }
                 break;
         }
