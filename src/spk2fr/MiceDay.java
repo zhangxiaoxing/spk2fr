@@ -80,6 +80,21 @@ public class MiceDay {
         return count;
     }
 
+    int[] countByCorrect() {    //{correct, incorrect}
+        int countCorrect = 0;
+        int countIncorrect = 0;
+        for (ArrayList<EventType[]> session : behaviorSessions) {
+            for (EventType[] trial : session) {
+                if (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) {
+                    countCorrect++;
+                } else {
+                    countIncorrect++;
+                }
+            }
+        }
+        return new int[]{countCorrect, countIncorrect};
+    }
+
     public void setBehaviorSessions(ArrayList<ArrayList<EventType[]>> behaviorSessions) {
         this.behaviorSessions = behaviorSessions;
     }

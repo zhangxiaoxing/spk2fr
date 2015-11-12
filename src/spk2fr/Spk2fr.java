@@ -36,23 +36,6 @@ public class Spk2fr {
         }
     }
 
-// 4 removal    
-//    public Double[][][] getFiringTimesByOdor(int odor) {
-//        return miceDay.getFiringTSByOdor(odor);
-//    }
-//    public double[][] getFringRateByOdor(float binStart, float binSize, float binEnd) {
-//        ArrayList<double[]> frs = new ArrayList<>();
-//        int correctOdorATrials = miceDay.countCorrectTrialByFirstOdor(0);
-//        int correctOdorBTrials = miceDay.countCorrectTrialByFirstOdor(1);
-////        System.out.println(correctOdorATrials+", "+correctOdorBTrials);
-//        for (Tetrode tetrode : miceDay.getTetrodes()) {
-//            for (SingleUnit unit : tetrode.getUnits()) {
-//                frs.add(unit.getFRbyOdor(correctOdorATrials, correctOdorBTrials, binStart, binSize, binEnd));
-//            }
-//        }
-//        return frs.toArray(new double[frs.size()][]);
-//    }
-//    
 //    /*
 //    For temporary check only
 //    */
@@ -82,18 +65,34 @@ public class Spk2fr {
         return TS.toArray(new double[TS.size()][][][]);
     }
 
-    public double[][][] getSampleFringRateByOdor(float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
+    public double[][][] getSampleFringRate(String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
+        ClassifyType cType;
+        int typeATrials;
+        int typeBTrials;
+        if (type.equalsIgnoreCase("odor")) {
+            cType = ClassifyType.BY_ODOR;
+            typeATrials = miceDay.countCorrectTrialByFirstOdor(0);
+            typeBTrials = miceDay.countCorrectTrialByFirstOdor(1);
+        } else if (type.equalsIgnoreCase("correct")) {
+            int[] counts=miceDay.countByCorrect();
+            typeATrials=counts[0];
+            typeBTrials=counts[1];
+            cType = ClassifyType.BY_CORRECT;
+        } else {
+            System.out.println("Unknown classify type: " + type);
+            return null;
+        }
+
         if (wellTrainOnly && !miceDay.isWellTrained()) {
 //            System.out.println("Not Well Trained");
             return null;
         }
 
         ArrayList<double[][]> frs = new ArrayList<>();
-        int odorATrials = miceDay.countCorrectTrialByFirstOdor(0);
-        int odorBTrials = miceDay.countCorrectTrialByFirstOdor(1);
+
         for (Tetrode tetrode : miceDay.getTetrodes()) {
             for (SingleUnit unit : tetrode.getUnits()) {
-                frs.add(unit.getSampleFRbyOdor(odorATrials, odorBTrials, binStart, binSize, binEnd, sampleSize, repeats));
+                frs.add(unit.getSampleFR(cType, typeATrials, typeBTrials, binStart, binSize, binEnd, sampleSize, repeats));
             }
         }
         return frs.toArray(new double[frs.size()][][]);

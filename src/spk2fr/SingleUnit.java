@@ -33,35 +33,11 @@ public class SingleUnit {
         }
         return sessions.get(sessionIdx).get(trialIdx);
     }
-//    public double[] getAvgFireRate(int firstOdor, int response){}
 
     public void removeSession(int sessionIdx) {
         sessions.remove(sessionIdx);
     }
 
-// 4 removal    
-//    public Double[][] getFiringTimesByOdor(int odor) {
-//        ArrayList<Double[]> firingTS = new ArrayList<>();//Time Stamp
-//        for (HashMap<Integer, Trial> session : sessions.values()) {
-//            for (Trial trial : session.values()) {
-//                if (trial.firstOdorIs(odor)) {
-//                    firingTS.add(trial.getSpikes());
-//                }
-//            }
-//        }
-//        return firingTS.toArray(new Double[firingTS.size()][]);
-//    }
-//    public Double[]getFiringTimesByOdor(int odor) {
-//        ArrayList<Double> firingRates = new ArrayList<>();
-//        for (HashMap<Integer, Trial> session : sessions.values()) {
-//            for (Trial trial : session.values()) {
-//                if (trial.firstOdorIs(odor)) {
-//                    firingRates.addAll(Arrays.asList(trial.getSpikes()));
-//                }
-//            }
-//        }
-//        return firingRates.toArray(new Double[firingRates.size()]);
-//    }
     public boolean isSparseFiring() {
         for (Trial trial : trialPool) {
             ArrayList<Double> ts = trial.getSpikesList();
@@ -91,153 +67,133 @@ public class SingleUnit {
 
     }
 
-//    public double[] getFRbyOdor(int odorATrialCount, int odorBTrialCount, float binStart, float binSize, float binEnd) {  //firing rate, baseline assumed to be 1s
-//
-//        ArrayList<Double> firingTSOdorA = new ArrayList<>();//Time Stamp
-//        ArrayList<Double> firingTSOdorB = new ArrayList<>();//Time Stamp
-//
-//        for (Trial trial : trialPool) {
-//            if (trial.firstOdorIs(0) && trial.isCorrect()) {
-//                firingTSOdorA.addAll(trial.getSpikesList());
-//            } else if (trial.firstOdorIs(1) && trial.isCorrect()) {
-//                firingTSOdorB.addAll(trial.getSpikesList());
-//            }
-//        }
-////        Collections.sort(firingTS);
-//
-//        int[] binedTSOdorA = new int[Math.round((binEnd - binStart) / binSize)];//time stamp
-//        int[] binedTSOdorB = new int[Math.round((binEnd - binStart) / binSize)];//time stamp
-//
-//        for (Double d : firingTSOdorA) {
-//            binedTSOdorA[(int) ((d - binStart) / binSize)]++;
-//        }
-//
-//        for (Double d : firingTSOdorB) {
-//            binedTSOdorB[(int) ((d - binStart) / binSize)]++;
-//        }
-//
-//        double[] normalized = new double[Math.round((binEnd - binStart) / binSize) * 2];
-//        double[] stats = getBaselineStats(this.trialPool, odorATrialCount + odorBTrialCount);
-//        double meanBaseFR = stats[0];
-//        double stdBaseFR = stats[1];
-//        for (int i = 0; i < binedTSOdorA.length; i++) {
-//            normalized[i] = (((double) binedTSOdorA[i] / odorATrialCount * (1 / binSize)) - meanBaseFR) / stdBaseFR;
-//        }
-//        int odorALength = binedTSOdorA.length;
-//        for (int i = 0; i < binedTSOdorB.length; i++) {
-//            normalized[i + odorALength] = (((double) binedTSOdorB[i] / odorBTrialCount * (1 / binSize)) - meanBaseFR) / stdBaseFR;
-//        }
-//        return normalized;
-//    }
+
     /*
      SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
      */
+    public double[][] getSampleFR(ClassifyType cType, int typeATrialCount, int typeBTrialCount, float binStart, float binSize, float binEnd, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
-    public double[][] getSampleFRbyOdor(int odorATrialCount, int odorBTrialCount, float binStart, float binSize, float binEnd, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
-
-        double[] stats = getBaselineStats(this.trialPool, odorATrialCount + odorBTrialCount);
-        double meanBaseFR = stats[0];
-        double stdBaseFR = stats[1];
-        ArrayList<Trial> odorAPool = new ArrayList<>();
-        ArrayList<Trial> odorBPool = new ArrayList<>();
-
-        for (Trial trial : this.trialPool) {
-            if (trial.firstOdorIs(0) && trial.isCorrect()) {
-                odorAPool.add(trial);
-            } else if (trial.firstOdorIs(1) && trial.isCorrect()) {
-                odorBPool.add(trial);
-            }
+        double[] stats;
+        double meanBaseFR=0;
+        double stdBaseFR=0;
+        ArrayList<Trial> typeAPool = new ArrayList<>();
+        ArrayList<Trial> typeBPool = new ArrayList<>();
+        switch (cType) {
+            case BY_ODOR:
+                stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
+                meanBaseFR = stats[0];
+                stdBaseFR = stats[1];
+                for (Trial trial : this.trialPool) {
+                    if (trial.firstOdorIs(0) && trial.isCorrect()) {
+                        typeAPool.add(trial);
+                    } else if (trial.firstOdorIs(1) && trial.isCorrect()) {
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
+            case BY_CORRECT:
+                stats = getBaselineStats(cType, this.trialPool, typeATrialCount);
+                meanBaseFR = stats[0];
+                stdBaseFR = stats[1];
+                for (Trial trial : this.trialPool) {
+                    if (trial.isCorrect()) {
+                        typeAPool.add(trial);
+                    } else {
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
         }
 
         //////////////////////////////TODO//////////////////////////////////
         RandomDataGenerator rng = new RandomDataGenerator();
         double[][] samples = new double[repeatCount][];
-        if (sampleCount[0][0] + sampleCount[0][1] > odorATrialCount) {
+        if (sampleCount[0][0] + sampleCount[0][1] > typeATrialCount) {
             if (sampleCount[0][1] < 2) {
-                sampleCount[0][0] = odorATrialCount - sampleCount[0][1];
+                sampleCount[0][0] = typeATrialCount - sampleCount[0][1];
             } else {
-                sampleCount[0][0] = odorATrialCount / 2;
-                sampleCount[0][1] = odorATrialCount / 2;
+                sampleCount[0][0] = typeATrialCount / 2;
+                sampleCount[0][1] = typeATrialCount / 2;
             }
         }
-        if (sampleCount[1][0] + sampleCount[1][1] > odorBTrialCount) {
+        if (sampleCount[1][0] + sampleCount[1][1] > typeBTrialCount) {
             if (sampleCount[1][1] < 2) {
-                sampleCount[1][0] = odorBTrialCount - sampleCount[1][1];
+                sampleCount[1][0] = typeBTrialCount - sampleCount[1][1];
             } else {
-                sampleCount[1][0] = odorBTrialCount / 2;
-                sampleCount[1][1] = odorBTrialCount / 2;
+                sampleCount[1][0] = typeBTrialCount / 2;
+                sampleCount[1][1] = typeBTrialCount / 2;
             }
         }
 
         for (int repeat = 0; repeat < repeatCount; repeat++) {
 
-            int[] aPerm = rng.nextPermutation(odorATrialCount, sampleCount[0][0] + sampleCount[0][1]);
-            int[] bPerm = rng.nextPermutation(odorBTrialCount, sampleCount[1][0] + sampleCount[1][1]);
+            int[] aPerm = rng.nextPermutation(typeATrialCount, sampleCount[0][0] + sampleCount[0][1]);
+            int[] bPerm = rng.nextPermutation(typeBTrialCount, sampleCount[1][0] + sampleCount[1][1]);
 
-            ArrayList<Double> firingTSOdorA1 = new ArrayList<>();//Time Stamp
-            ArrayList<Double> firingTSOdorA2 = new ArrayList<>();//Time Stamp
-            ArrayList<Double> firingTSOdorB1 = new ArrayList<>();//Time Stamp
-            ArrayList<Double> firingTSOdorB2 = new ArrayList<>();//Time Stamp
+            ArrayList<Double> psthTypeA1 = new ArrayList<>();//Time Stamp
+            ArrayList<Double> psthTypeA2 = new ArrayList<>();//Time Stamp
+            ArrayList<Double> psthTypeB1 = new ArrayList<>();//Time Stamp
+            ArrayList<Double> psthTypeB2 = new ArrayList<>();//Time Stamp
 
             for (int i = 0; i < sampleCount[0][0]; i++) {
-                if (aPerm[i] < odorAPool.size()) {
-                    firingTSOdorA1.addAll(odorAPool.get(aPerm[i]).getSpikesList());
+                if (aPerm[i] < typeAPool.size()) {
+                    psthTypeA1.addAll(typeAPool.get(aPerm[i]).getSpikesList());
                 }
             }
             for (int i = sampleCount[0][0]; i < sampleCount[0][0] + sampleCount[0][1]; i++) {
-                if (aPerm[i] < odorAPool.size()) {
-                    firingTSOdorA2.addAll(odorAPool.get(aPerm[i]).getSpikesList());
+                if (aPerm[i] < typeAPool.size()) {
+                    psthTypeA2.addAll(typeAPool.get(aPerm[i]).getSpikesList());
                 }
             }
 
             for (int i = 0; i < sampleCount[1][0]; i++) {
-                if (bPerm[i] < odorBPool.size()) {
-                    firingTSOdorB1.addAll(odorBPool.get(bPerm[i]).getSpikesList());
+                if (bPerm[i] < typeBPool.size()) {
+                    psthTypeB1.addAll(typeBPool.get(bPerm[i]).getSpikesList());
                 }
             }
 
             for (int i = sampleCount[1][0]; i < sampleCount[1][0] + sampleCount[1][1]; i++) {
-                if (bPerm[i] < odorBPool.size()) {
-                    firingTSOdorB2.addAll(odorBPool.get(bPerm[i]).getSpikesList());
+                if (bPerm[i] < typeBPool.size()) {
+                    psthTypeB2.addAll(typeBPool.get(bPerm[i]).getSpikesList());
                 }
             }
             int binCount = Math.round((binEnd - binStart) / binSize);
-            int[] binedTSOdorA1 = new int[binCount];//time stamp
-            int[] binedTSOdorA2 = new int[binCount];//time stamp
-            int[] binedTSOdorB1 = new int[binCount];//time stamp
-            int[] binedTSOdorB2 = new int[binCount];//time stamp
+            int[] binedPSTHA1 = new int[binCount];//time stamp
+            int[] binedPSTHA2 = new int[binCount];//time stamp
+            int[] binedPSTHB1 = new int[binCount];//time stamp
+            int[] binedPSTHB2 = new int[binCount];//time stamp
 
-            for (Double d : firingTSOdorA1) {
-                binedTSOdorA1[(int) ((d - binStart) / binSize)]++;
+            for (Double d : psthTypeA1) {
+                binedPSTHA1[(int) ((d - binStart) / binSize)]++;
             }
 
-            for (Double d : firingTSOdorA2) {
-                binedTSOdorA2[(int) ((d - binStart) / binSize)]++;
+            for (Double d : psthTypeA2) {
+                binedPSTHA2[(int) ((d - binStart) / binSize)]++;
             }
 
-            for (Double d : firingTSOdorB1) {
-                binedTSOdorB1[(int) ((d - binStart) / binSize)]++;
+            for (Double d : psthTypeB1) {
+                binedPSTHB1[(int) ((d - binStart) / binSize)]++;
             }
-            for (Double d : firingTSOdorB2) {
-                binedTSOdorB2[(int) ((d - binStart) / binSize)]++;
+            for (Double d : psthTypeB2) {
+                binedPSTHB2[(int) ((d - binStart) / binSize)]++;
             }
 
             double[] normalized = new double[binCount * 4];
 
-            for (int i = 0; i < binedTSOdorA1.length; i++) {
-                normalized[i] = (((double) binedTSOdorA1[i] / sampleCount[0][0] / binSize) - meanBaseFR) / stdBaseFR;
+            for (int i = 0; i < binedPSTHA1.length; i++) {
+                normalized[i] = (((double) binedPSTHA1[i] / sampleCount[0][0] / binSize) - meanBaseFR) / stdBaseFR;
             }
 
-            for (int i = 0; i < binedTSOdorA2.length; i++) {
-                normalized[i + binCount] = (((double) binedTSOdorA2[i] / sampleCount[0][1] / binSize) - meanBaseFR) / stdBaseFR;
+            for (int i = 0; i < binedPSTHA2.length; i++) {
+                normalized[i + binCount] = (((double) binedPSTHA2[i] / sampleCount[0][1] / binSize) - meanBaseFR) / stdBaseFR;
             }
 
-            for (int i = 0; i < binedTSOdorB1.length; i++) {
-                normalized[i + binCount * 2] = (((double) binedTSOdorB1[i] / sampleCount[1][0] * (1 / binSize)) - meanBaseFR) / stdBaseFR;
+            for (int i = 0; i < binedPSTHB1.length; i++) {
+                normalized[i + binCount * 2] = (((double) binedPSTHB1[i] / sampleCount[1][0] * (1 / binSize)) - meanBaseFR) / stdBaseFR;
             }
 
-            for (int i = 0; i < binedTSOdorB2.length; i++) {
-                normalized[i + binCount * 3] = (((double) binedTSOdorB2[i] / sampleCount[1][1] * (1 / binSize)) - meanBaseFR) / stdBaseFR;
+            for (int i = 0; i < binedPSTHB2.length; i++) {
+                normalized[i + binCount * 3] = (((double) binedPSTHB2[i] / sampleCount[1][1] * (1 / binSize)) - meanBaseFR) / stdBaseFR;
             }
 
             samples[repeat] = normalized;
@@ -254,20 +210,39 @@ public class SingleUnit {
         }
     }
 
-    private double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
+    private double[] getBaselineStats(ClassifyType cType, ArrayList<Trial> trialPool, int totalTrialCount) {
         double[] baselineTSCount = new double[totalTrialCount];
         int trialIdx = 0;
-        for (Trial trial : trialPool) {
-            if (trial.isCorrect()) {
-                for (Double d : trial.getSpikesList()) {
-                    if (d < 0) {
-                        baselineTSCount[trialIdx]++;
-                    } else {
-                        break;
+        switch (cType) {
+            case BY_ODOR:
+                for (Trial trial : trialPool) {
+                    if (trial.isCorrect()) {
+                        for (Double d : trial.getSpikesList()) {
+                            if (d < 0) {
+                                baselineTSCount[trialIdx]++;
+                            } else {
+                                break;
+                            }
+                        }
+                        trialIdx++;
                     }
                 }
-                trialIdx++;
-            }
+                break;
+            case BY_CORRECT:
+                for (Trial trial : trialPool) {
+                    if (trial.isCorrect()) {
+                        for (Double d : trial.getSpikesList()) {
+                            if (d < 0) {
+                                baselineTSCount[trialIdx]++;
+                            } else {
+                                break;
+                            }
+                        }
+                        trialIdx++;
+//                    System.out.println(totalTrialCount+", "+trialIdx);
+                    }
+                }
+                break;
         }
         return new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
     }
