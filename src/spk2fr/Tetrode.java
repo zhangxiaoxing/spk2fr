@@ -39,7 +39,7 @@ public class Tetrode {
 //        }
         HashMap<Integer, SingleUnit> selectedUnits=new HashMap<>();
         for (Integer key:singleUnits.keySet()){
-            if(!singleUnits.get(key).isStrictSparseFiring(trialCount)){
+            if(!singleUnits.get(key).isSparseFiring()){
                 selectedUnits.put(key, singleUnits.get(key));
             }
         }

@@ -80,15 +80,17 @@ public class MiceDay {
         return count;
     }
 
-    int[] countByCorrect() {    //{correct, incorrect}
+    int[] countByCorrect(EventType odor) {    //{correct, incorrect}
         int countCorrect = 0;
         int countIncorrect = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
-                if (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) {
-                    countCorrect++;
-                } else {
-                    countIncorrect++;
+                if (trial[0] == odor) {
+                    if (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) {
+                        countCorrect++;
+                    } else {
+                        countIncorrect++;
+                    }
                 }
             }
         }

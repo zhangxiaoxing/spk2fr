@@ -73,11 +73,16 @@ public class Spk2fr {
             cType = ClassifyType.BY_ODOR;
             typeATrials = miceDay.countCorrectTrialByFirstOdor(0);
             typeBTrials = miceDay.countCorrectTrialByFirstOdor(1);
-        } else if (type.equalsIgnoreCase("correct")) {
-            int[] counts=miceDay.countByCorrect();
-            typeATrials=counts[0];
-            typeBTrials=counts[1];
-            cType = ClassifyType.BY_CORRECT;
+        } else if (type.equalsIgnoreCase("correctA")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorA);
+            typeATrials = counts[0];
+            typeBTrials = counts[1];
+            cType = ClassifyType.BY_CORRECT_OdorA;
+        } else if (type.equalsIgnoreCase("correctB")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorB);
+            typeATrials = counts[0];
+            typeBTrials = counts[1];
+            cType = ClassifyType.BY_CORRECT_OdorB;
         } else {
             System.out.println("Unknown classify type: " + type);
             return null;
@@ -92,7 +97,10 @@ public class Spk2fr {
 
         for (Tetrode tetrode : miceDay.getTetrodes()) {
             for (SingleUnit unit : tetrode.getUnits()) {
-                frs.add(unit.getSampleFR(cType, typeATrials, typeBTrials, binStart, binSize, binEnd, sampleSize, repeats));
+                double[][] rtn = unit.getSampleFR(cType, typeATrials, typeBTrials, binStart, binSize, binEnd, sampleSize, repeats);
+                if (null != rtn) {
+                    frs.add(rtn);
+                }
             }
         }
         return frs.toArray(new double[frs.size()][][]);

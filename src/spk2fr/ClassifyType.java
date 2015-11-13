@@ -10,5 +10,5 @@ package spk2fr;
  * @author Libra
  */
 public enum ClassifyType {
-    BY_ODOR, BY_CORRECT
+    BY_ODOR, BY_CORRECT_OdorA, BY_CORRECT_OdorB
 }

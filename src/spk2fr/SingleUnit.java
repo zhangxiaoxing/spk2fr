@@ -81,24 +81,32 @@ public class SingleUnit {
         switch (cType) {
             case BY_ODOR:
                 for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(0) && trial.isCorrect()) {
+                    if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(1) && trial.isCorrect()) {
+                    } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
                         typeBPool.add(trial);
                     }
                 }
                 break;
-            case BY_CORRECT:
+            case BY_CORRECT_OdorA:
                 for (Trial trial : this.trialPool) {
-                    if (trial.isCorrect()) {
+                    if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
-                    } else {
+                    } else if (trial.firstOdorIs(EventType.OdorA) && !trial.isCorrect()) {
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
+            case BY_CORRECT_OdorB:
+                for (Trial trial : this.trialPool) {
+                    if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                        typeAPool.add(trial);
+                    } else if (trial.firstOdorIs(EventType.OdorB) && !trial.isCorrect()) {
                         typeBPool.add(trial);
                     }
                 }
                 break;
         }
-
         //////////////////////////////TODO//////////////////////////////////
         RandomDataGenerator rng = new RandomDataGenerator();
         double[][] samples = new double[repeatCount][];
@@ -117,6 +125,11 @@ public class SingleUnit {
                 sampleCount[1][0] = typeBTrialCount / 2;
                 sampleCount[1][1] = typeBTrialCount / 2;
             }
+        }
+
+        if (sampleCount[0][0] < 1 || sampleCount[1][0] < 1) {
+            System.out.println("Not Enough Trial!");
+            return null;
         }
 
         for (int repeat = 0; repeat < repeatCount; repeat++) {
@@ -207,6 +220,7 @@ public class SingleUnit {
     private double[] getBaselineStats(ClassifyType cType, ArrayList<Trial> trialPool, int totalTrialCount) {
         double[] baselineTSCount = new double[totalTrialCount];
         int trialIdx = 0;
+        boolean allZero = true;
         switch (cType) {
             case BY_ODOR:
                 for (Trial trial : trialPool) {
@@ -214,6 +228,7 @@ public class SingleUnit {
                         for (Double d : trial.getSpikesList()) {
                             if (d < 0) {
                                 baselineTSCount[trialIdx]++;
+                                allZero = false;
                             } else {
                                 break;
                             }
@@ -222,18 +237,39 @@ public class SingleUnit {
                     }
                 }
                 break;
-            case BY_CORRECT:
+            case BY_CORRECT_OdorA:
                 for (Trial trial : trialPool) {
-                    for (Double d : trial.getSpikesList()) {
-                        if (d < 0) {
-                            baselineTSCount[trialIdx]++;
-                        } else {
-                            break;
+                    if (trial.firstOdorIs(EventType.OdorA)) {
+                        for (Double d : trial.getSpikesList()) {
+                            if (d < 0) {
+                                baselineTSCount[trialIdx]++;
+                                allZero = false;
+                            } else {
+                                break;
+                            }
                         }
+                        trialIdx++;
                     }
-                    trialIdx++;
                 }
                 break;
+            case BY_CORRECT_OdorB:
+                for (Trial trial : trialPool) {
+                    if (trial.firstOdorIs(EventType.OdorB)) {
+                        for (Double d : trial.getSpikesList()) {
+                            if (d < 0) {
+                                baselineTSCount[trialIdx]++;
+                                allZero = false;
+                            } else {
+                                break;
+                            }
+                        }
+                        trialIdx++;
+                    }
+                }
+                break;
+        }
+        if (allZero) {
+            baselineTSCount[0] = 1;
         }
         return new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
     }
@@ -278,7 +314,7 @@ public class SingleUnit {
 
         for (Trial trial : trialPool) {
 
-            if (trial.firstOdorIs(0) && trial.isCorrect()) {
+            if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
@@ -288,7 +324,7 @@ public class SingleUnit {
                 firingTSOdorA[trialAIdx] = temp;
                 trialAIdx++;
 
-            } else if (trial.firstOdorIs(1) && trial.isCorrect()) {
+            } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
