@@ -67,12 +67,12 @@ public class MiceDay {
 
     }
 
-    int countCorrectTrialByFirstOdor(int odor) {
+    int countCorrectTrialByFirstOdor(EventType odor) {
         int count = 0;
-        EventType targetOdor = odor == 0 ? EventType.OdorA : EventType.OdorB;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
-                if (trial[0] == targetOdor && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection)) {
+                
+                if (trial[0] == odor && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection)) {
                     count++;
                 }
             }
@@ -100,4 +100,9 @@ public class MiceDay {
     public void setBehaviorSessions(ArrayList<ArrayList<EventType[]>> behaviorSessions) {
         this.behaviorSessions = behaviorSessions;
     }
+
+    public ArrayList<ArrayList<EventType[]>> getBehaviorSessions() {
+        return behaviorSessions;
+    }
+
 }

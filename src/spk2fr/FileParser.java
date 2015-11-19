@@ -16,7 +16,6 @@ import java.util.Comparator;
 public class FileParser {
 
     private int spkIdx = 0;
-    
 
     class spkSorter implements Comparator<double[]> {
 
@@ -26,8 +25,6 @@ public class FileParser {
             return o1[2] < o2[2] ? -1 : 1;
         }
     }
-
-
 
     MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
@@ -62,8 +59,8 @@ public class FileParser {
 //                            if (behaviorSession.size() < 20) {
 //                                miceDay.removeSession(sessionIdx);
 //                            } else {
-                                behaviorSessions.add(behaviorSession);
-                                behaviorSession = new ArrayList<>();
+                            behaviorSessions.add(behaviorSession);
+                            behaviorSession = new ArrayList<>();
 //                            }
                             sessionIdx++;
                             break;
@@ -75,13 +72,17 @@ public class FileParser {
                 case 7:
                     response = responses[evt[2] - 4];
                     if (firstOdor != EventType.unknown && secondOdor != EventType.unknown) {
-                        sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
-                        EventType[] behaviorTrial = {firstOdor, secondOdor, response};
-                        behaviorSession.add(behaviorTrial);
+                        double trialDelay = secondOdorEnd - baselineStart - 3;
+//                        if (trialDelay > 4.8 && trialDelay < 5.2) {
+//                            System.out.println("length " + (secondOdorEnd - baselineStart));
+                            sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
+                            EventType[] behaviorTrial = {firstOdor, secondOdor, response};
+                            behaviorSession.add(behaviorTrial);
+//                        }
                     }
                     firstOdor = EventType.unknown;
                     secondOdor = EventType.unknown;
-                    
+
                     break;
                 case 9:
                 case 10:
@@ -97,6 +98,7 @@ public class FileParser {
                     break;
             }
         }
+        behaviorSessions.add(behaviorSession);
         poolTrials(miceDay);
         miceDay.setBehaviorSessions(behaviorSessions);
         return miceDay;
@@ -110,7 +112,7 @@ public class FileParser {
                         .getTrial(sessionIdx, trialIdx);
 
                 if (!currentTrial.isSet()) {
-                    currentTrial.setTrialParameter(firstOdor, secondOdor, response,secondOdorEnd-baselineStart);
+                    currentTrial.setTrialParameter(firstOdor, secondOdor, response, secondOdorEnd - baselineStart);
                 }
                 currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;
             }
@@ -126,6 +128,4 @@ public class FileParser {
         }
     }
 
-    
-    
 }

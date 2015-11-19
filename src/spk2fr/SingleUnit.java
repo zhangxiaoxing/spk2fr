@@ -38,35 +38,37 @@ public class SingleUnit {
         sessions.remove(sessionIdx);
     }
 
-    public boolean isSparseFiring() {
-        for (Trial trial : trialPool) {
-            ArrayList<Double> ts = trial.getSpikesList();
-            if (ts.size() > 1) {
-                for (int i = 1; i < ts.size(); i++) {
-                    if (ts.get(i) - ts.get(i - 1) < 1) {
-                        return false;
+    public boolean isSparseFiring(ClassifyType type, int trialCount) {
+        switch (type) {
+            case BY_PEAK2Hz:
+                for (Trial trial : trialPool) {
+                    ArrayList<Double> ts = trial.getSpikesList();
+                    if (ts.size() > 1) {
+                        for (int i = 1; i < ts.size(); i++) {
+                            if (ts.get(i) - ts.get(i - 1) < 1) {
+                                return false;
+                            }
+                        }
                     }
                 }
-            }
+                return true;
+            case BY_AVERAGE2Hz:
+            case BY_AVERAGE1Hz:
+                int spkCount = 0;
+                int firedTrial = 0;
+                double firedTrialLengthSum = 0;
+                for (Trial trial : trialPool) {
+                    spkCount += trial.getSpikesList().size();
+                    firedTrial++;
+                    firedTrialLengthSum += trial.getLength();
+                }
+                double avgLength = firedTrialLengthSum / firedTrial;
+                double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
+                return !(spkCount > trialCount * avgLength * fr); //2Hz
         }
+
         return true;
     }
-
-    public boolean isStrictSparseFiring(int trialCount) {
-        int spkCount = 0;
-        int firedTrial = 0;
-        double firedTrialLengthSum = 0;
-        for (Trial trial : trialPool) {
-            spkCount += trial.getSpikesList().size();
-            firedTrial++;
-            firedTrialLengthSum += trial.getLength();
-        }
-        double avgLength = firedTrialLengthSum / firedTrial;
-//        System.out.println("Length "+avgLength+", spkCount "+spkCount);
-        return !(spkCount > trialCount * avgLength * 2d); //2Hz
-
-    }
-
 
     /*
      SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
@@ -218,12 +220,14 @@ public class SingleUnit {
     }
 
     private double[] getBaselineStats(ClassifyType cType, ArrayList<Trial> trialPool, int totalTrialCount) {
+//        System.out.println(totalTrialCount);
         double[] baselineTSCount = new double[totalTrialCount];
         int trialIdx = 0;
         boolean allZero = true;
         switch (cType) {
             case BY_ODOR:
                 for (Trial trial : trialPool) {
+//                    System.out.println(trialPool.size());
                     if (trial.isCorrect()) {
                         for (Double d : trial.getSpikesList()) {
                             if (d < 0) {

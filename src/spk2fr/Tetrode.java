@@ -33,17 +33,17 @@ public class Tetrode {
         }
     }
 
-    public void removeSparseFiringUnits(int trialCount) {
+    public void removeSparseFiringUnits(ClassifyType type, int trialCount) {
 //        for (SingleUnit unit : singleUnits.values()) {
 //            unit.removeSession(sessionIdx);
 //        }
-        HashMap<Integer, SingleUnit> selectedUnits=new HashMap<>();
-        for (Integer key:singleUnits.keySet()){
-            if(!singleUnits.get(key).isSparseFiring()){
+        HashMap<Integer, SingleUnit> selectedUnits = new HashMap<>();
+        for (Integer key : singleUnits.keySet()) {
+            if (!singleUnits.get(key).isSparseFiring(type, trialCount)) {
                 selectedUnits.put(key, singleUnits.get(key));
             }
         }
-        this.singleUnits=selectedUnits;
+        this.singleUnits = selectedUnits;
     }
 
     public Collection<SingleUnit> getUnits() {
