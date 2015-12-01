@@ -12,12 +12,13 @@ import java.util.ArrayList;
  *
  * @author Libra
  */
-public class Spk2fr {
+public class Spk2fr{
 
     final private FileParser fp;
     private MiceDay miceDay;
     private boolean wellTrainOnly = false;
     private ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
+    private double refracRatio = 0.0015;
 
     /**
      * @param args the command line arguments
@@ -34,7 +35,8 @@ public class Spk2fr {
         miceDay = fp.processFile(evts, spk);
         for (Tetrode t : miceDay.getTetrodes()) {
             t.removeSparseFiringUnits(leastFR,
-                    miceDay.countCorrectTrialByFirstOdor(EventType.OdorA) + miceDay.countCorrectTrialByFirstOdor(EventType.OdorB));
+                    miceDay.countCorrectTrialByFirstOdor(EventType.OdorA)
+                    + miceDay.countCorrectTrialByFirstOdor(EventType.OdorB), refracRatio);
         }
     }
 
@@ -50,13 +52,76 @@ public class Spk2fr {
 //        }
 //        return baseTS.toArray(new double[baseTS.size()][]);
 //    }
+    private int[] getTrialNum(String type) {
+        ClassifyType cType;
+        int typeATrials = -1;
+        int typeBTrials = -1;
+        if (type.equalsIgnoreCase("odor")) {
+            cType = ClassifyType.BY_ODOR;
+            typeATrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorA);
+            typeBTrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorB);
+        } else if (type.equalsIgnoreCase("odorWithinMeanTrial")) {
+            cType = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL;
+            typeATrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorA);
+            typeBTrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorB);
+        } else if (type.equalsIgnoreCase("odorZ")) {
+            cType = ClassifyType.BY_ODOR_Z;
+            typeATrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorA);
+            typeBTrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorB);
+        } else if (type.equalsIgnoreCase("odorWithinMeanTrialZ")) {
+            cType = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z;
+            typeATrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorA);
+            typeBTrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorB);
+        } else if (type.equalsIgnoreCase("correctA")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorA);
+            typeATrials = counts[0];
+            typeBTrials = counts[1];
+            System.out.println("A ,"+typeATrials+"\t"+typeBTrials);
+            cType = ClassifyType.BY_CORRECT_OdorA;
+        } else if (type.equalsIgnoreCase("allA")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorA);
+            typeATrials = counts[0] + counts[1];
+            typeBTrials = counts[0] + counts[1];
+            cType = ClassifyType.ALL_ODORA;
+        } else if (type.equalsIgnoreCase("correctZA")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorA);
+            typeATrials = counts[0];
+            typeBTrials = counts[1];
+            cType = ClassifyType.BY_CORRECT_OdorA_Z;
+        } else if (type.equalsIgnoreCase("correctB")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorB);
+            typeATrials = counts[0];
+            typeBTrials = counts[1];
+            System.out.println("B ,"+typeATrials+"\t"+typeBTrials);
+            cType = ClassifyType.BY_CORRECT_OdorB;
+        } else if (type.equalsIgnoreCase("allB")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorB);
+            typeATrials = counts[0] + counts[1];
+            typeBTrials = counts[0] + counts[1];
+            cType = ClassifyType.ALL_ODORB;
+        } else if (type.equalsIgnoreCase("correctZB")) {
+            int[] counts = miceDay.countByCorrect(EventType.OdorB);
+            typeATrials = counts[0];
+            typeBTrials = counts[1];
+            cType = ClassifyType.BY_CORRECT_OdorB_Z;
+        } else {
+            System.out.println("Unknown classify type: " + type);
+            return null;
+        }
+        return new int[]{cType.ordinal(), typeATrials, typeBTrials};
+    }
+
     /*
      For temporary check only
      */
-    public double[][][][] getTS() {
+    public double[][][][] getTS(String type) {
         if (wellTrainOnly && !miceDay.isWellTrained()) {
             return null;
         }
+        int[] params = getTrialNum(type);
+//        ClassifyType cType = ClassifyType.values()[params[0]];
+//        int typeATrials = params[1];
+//        int typeBTrials = params[2];
 
         ArrayList<double[][][]> TS = new ArrayList<>();
         for (Tetrode tetrode : miceDay.getTetrodes()) {
@@ -68,32 +133,14 @@ public class Spk2fr {
     }
 
     public double[][][] getSampleFringRate(String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-        ClassifyType cType;
-        int typeATrials;
-        int typeBTrials;
-        if (type.equalsIgnoreCase("odor")) {
-            cType = ClassifyType.BY_ODOR;
-            typeATrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorA);
-            typeBTrials = miceDay.countCorrectTrialByFirstOdor(EventType.OdorB);
-        } else if (type.equalsIgnoreCase("correctA")) {
-            int[] counts = miceDay.countByCorrect(EventType.OdorA);
-            typeATrials = counts[0];
-            typeBTrials = counts[1];
-            cType = ClassifyType.BY_CORRECT_OdorA;
-        } else if (type.equalsIgnoreCase("correctB")) {
-            int[] counts = miceDay.countByCorrect(EventType.OdorB);
-            typeATrials = counts[0];
-            typeBTrials = counts[1];
-            cType = ClassifyType.BY_CORRECT_OdorB;
-        } else {
-            System.out.println("Unknown classify type: " + type);
-            return null;
-        }
-
         if (wellTrainOnly && !miceDay.isWellTrained()) {
 //            System.out.println("Not Well Trained");
             return null;
         }
+        int[] params = getTrialNum(type);
+        ClassifyType cType = ClassifyType.values()[params[0]];
+        int typeATrials = params[1];
+        int typeBTrials = params[2];
 
         ArrayList<double[][]> frs = new ArrayList<>();
 
@@ -157,10 +204,14 @@ public class Spk2fr {
     public void setLeastFR(String type) {
         if (type.equalsIgnoreCase("Average2Hz")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz;
+        }else if (type.equalsIgnoreCase("Average2HzWhole")) {
+            leastFR = ClassifyType.BY_AVERAGE2Hz_WHOLETRIAL;
         } else if (type.equalsIgnoreCase("Average1Hz")) {
             leastFR = ClassifyType.BY_AVERAGE1Hz;
         } else if (type.equalsIgnoreCase("Peak2Hz")) {
             leastFR = ClassifyType.BY_PEAK2Hz;
+        } else if (type.equalsIgnoreCase("Peak2HzWhole")) {
+            leastFR = ClassifyType.BY_PEAK2Hz_WHOLETRIAL;
         } else {
             System.out.println("Wrong Least FR type, using Average 2Hz");
         }
@@ -183,4 +234,9 @@ public class Spk2fr {
     public double[][] rebuild(double[][] evts, double delay) {
         return RebuildEventFile.rebulid(evts, delay);
     }
+
+    public void setRefracRatio(double refracRatio) {
+        this.refracRatio = refracRatio;
+    }
+    
 }

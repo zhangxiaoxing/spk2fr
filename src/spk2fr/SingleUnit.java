@@ -18,10 +18,20 @@ public class SingleUnit {
 
     final private HashMap<Integer, HashMap<Integer, Trial>> sessions;
     private ArrayList<Trial> trialPool;
+    private ArrayList<Double> spkPool=new ArrayList<>();
 //    HashMap<Integer, Trial> trials;
 
     public SingleUnit() {
         sessions = new HashMap<>();
+    }
+
+    public void addspk(Double d) {
+        spkPool.add(d);
+    }
+
+    public SingleUnit(HashMap<Integer, HashMap<Integer, Trial>> sessions) {
+        this.sessions = sessions;
+//        spkPool = new ArrayList<>();
     }
 
     public Trial getTrial(int sessionIdx, int trialIdx) {
@@ -38,14 +48,31 @@ public class SingleUnit {
         sessions.remove(sessionIdx);
     }
 
-    public boolean isSparseFiring(ClassifyType type, int trialCount) {
+    public boolean isSparseFiring(ClassifyType type, int trialCount, double refracRatio) {
+        int totalSpike = 0;
+        int lowRefracSpike = 0;
+        for (Trial trial : trialPool) {
+            ArrayList<Double> ts = trial.getSpikesList();
+            totalSpike += ts.size();
+            if (ts.size() > 1) {
+                for (int i = 1; i < ts.size(); i++) {
+                    if (ts.get(i) - ts.get(i - 1) < 0.002) {
+                        lowRefracSpike++;
+                    }
+                }
+            }
+        }
+//        System.out.println(lowRefracSpike+", "+totalSpike+", "+(double) lowRefracSpike/totalSpike);
+        if (totalSpike < 1 || (double) lowRefracSpike / totalSpike > refracRatio) {
+            return true;
+        }
         switch (type) {
             case BY_PEAK2Hz:
                 for (Trial trial : trialPool) {
                     ArrayList<Double> ts = trial.getSpikesList();
                     if (ts.size() > 1) {
                         for (int i = 1; i < ts.size(); i++) {
-                            if (ts.get(i) - ts.get(i - 1) < 1) {
+                            if (ts.get(i) - ts.get(i - 1) < 0.5) {
                                 return false;
                             }
                         }
@@ -65,6 +92,17 @@ public class SingleUnit {
                 double avgLength = firedTrialLengthSum / firedTrial;
                 double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
                 return !(spkCount > trialCount * avgLength * fr); //2Hz
+            case BY_AVERAGE2Hz_WHOLETRIAL:
+                return spkPool.size() / (spkPool.get(spkPool.size() - 1) - spkPool.get(0)) < 2;
+            case BY_PEAK2Hz_WHOLETRIAL:
+                if (spkPool.size() > 1) {
+                    for (int i = 1; i < spkPool.size(); i++) {
+                        if (spkPool.get(i) - spkPool.get(i - 1) < 0.5) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
         }
 
         return true;
@@ -75,13 +113,27 @@ public class SingleUnit {
      */
     public double[][] getSampleFR(ClassifyType cType, int typeATrialCount, int typeBTrialCount, float binStart, float binSize, float binEnd, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
-        double[] stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
-        double meanBaseFR = stats[0];
-        double stdBaseFR = stats[1];
+        double meanBaseFR;
+        double stdBaseFR;
+        if (cType == ClassifyType.BY_ODOR_Z || cType == ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z
+                || cType == ClassifyType.BY_CORRECT_OdorA_Z || cType == ClassifyType.BY_CORRECT_OdorB_Z) {
+
+            double[] stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
+            meanBaseFR = stats[0];
+            stdBaseFR = stats[1];
+        } else {
+            meanBaseFR = 0;
+            stdBaseFR = 1;
+        }
+
+//        System.out.println(meanBaseFR+", "+stdBaseFR);
         ArrayList<Trial> typeAPool = new ArrayList<>();
         ArrayList<Trial> typeBPool = new ArrayList<>();
         switch (cType) {
             case BY_ODOR:
+            case BY_ODOR_WITHIN_MEAN_TRIAL:
+            case BY_ODOR_Z:
+            case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
                 for (Trial trial : this.trialPool) {
                     if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
@@ -91,6 +143,7 @@ public class SingleUnit {
                 }
                 break;
             case BY_CORRECT_OdorA:
+            case BY_CORRECT_OdorA_Z:
                 for (Trial trial : this.trialPool) {
                     if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
@@ -100,6 +153,7 @@ public class SingleUnit {
                 }
                 break;
             case BY_CORRECT_OdorB:
+            case BY_CORRECT_OdorB_Z:
                 for (Trial trial : this.trialPool) {
                     if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
                         typeAPool.add(trial);
@@ -108,8 +162,24 @@ public class SingleUnit {
                     }
                 }
                 break;
+            case ALL_ODORA:
+                for (Trial trial : this.trialPool) {
+                    if (trial.firstOdorIs(EventType.OdorA)) {
+                        typeAPool.add(trial);
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
+            case ALL_ODORB:
+                for (Trial trial : this.trialPool) {
+                    if (trial.firstOdorIs(EventType.OdorB)) {
+                        typeAPool.add(trial);
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
         }
-        //////////////////////////////TODO//////////////////////////////////
+
         RandomDataGenerator rng = new RandomDataGenerator();
         double[][] samples = new double[repeatCount][];
         if (sampleCount[0][0] + sampleCount[0][1] > typeATrialCount) {
@@ -130,6 +200,7 @@ public class SingleUnit {
         }
 
         if (sampleCount[0][0] < 1 || sampleCount[1][0] < 1) {
+//            System.out.print(sampleCount[0][0]+", "+sampleCount[0][1]+", "+sampleCount[1][0]+", "+sampleCount[1][1]+", ");
             System.out.println("Not Enough Trial!");
             return null;
         }
@@ -225,7 +296,7 @@ public class SingleUnit {
         int trialIdx = 0;
         boolean allZero = true;
         switch (cType) {
-            case BY_ODOR:
+            case BY_ODOR_Z:
                 for (Trial trial : trialPool) {
 //                    System.out.println(trialPool.size());
                     if (trial.isCorrect()) {
@@ -241,7 +312,8 @@ public class SingleUnit {
                     }
                 }
                 break;
-            case BY_CORRECT_OdorA:
+
+            case BY_CORRECT_OdorA_Z:
                 for (Trial trial : trialPool) {
                     if (trial.firstOdorIs(EventType.OdorA)) {
                         for (Double d : trial.getSpikesList()) {
@@ -256,7 +328,8 @@ public class SingleUnit {
                     }
                 }
                 break;
-            case BY_CORRECT_OdorB:
+
+            case BY_CORRECT_OdorB_Z:
                 for (Trial trial : trialPool) {
                     if (trial.firstOdorIs(EventType.OdorB)) {
                         for (Double d : trial.getSpikesList()) {
@@ -271,6 +344,28 @@ public class SingleUnit {
                     }
                 }
                 break;
+
+            case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
+                int[] tsbins = new int[10];
+                for (Trial trial : trialPool) {
+//                    System.out.println(trialPool.size());
+                    if (trial.isCorrect()) {
+                        for (Double d : trial.getSpikesList()) {
+                            if (d < 0 && d > -1) {
+                                tsbins[(int) ((d + 1) * 10)]++;
+                                allZero = false;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+                double[] binFR = new double[10];
+                for (int i = 0; i < 10; i++) {
+                    binFR[i] = (double) tsbins[i] / totalTrialCount / 0.1;
+                }
+                return new double[]{StatUtils.mean(binFR), Math.sqrt(StatUtils.variance(binFR))};
+//                break;
         }
         if (allZero) {
             baselineTSCount[0] = 1;

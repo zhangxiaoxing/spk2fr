@@ -14,22 +14,42 @@ import java.util.Comparator;
  * @author Libra
  */
 public class FileParser {
-
+    
     private int spkIdx = 0;
+    
+    class SpkSorterByTime implements Comparator<double[]> {
+        
+        boolean byTime;// false=by id;
 
-    class spkSorter implements Comparator<double[]> {
-
+        public SpkSorterByTime(boolean byTime) {
+            this.byTime = byTime;
+        }
+        
         @Override
         public int compare(double[] o1, double[] o2) {
-
-            return o1[2] < o2[2] ? -1 : 1;
+            if (byTime) {
+                return o1[2] < o2[2] ? -1 : 1;
+            } else {
+                if (o1[0] == o2[0]) {
+                    return o1[1] < o2[1] ? -1 : 1;
+                } else {
+                    return o1[0] < o2[0] ? -1 : 1;
+                }
+            }
         }
     }
-
+    
     MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
-        Arrays.sort(spk, new spkSorter());
+        for (double[] oneSpk : spk) {
+            if (oneSpk[1] > 0.5) {
+                miceDay.getTetrode((int) Math.round(oneSpk[0]))
+                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk(oneSpk[2]);
+            }
+        }
+        
+        Arrays.sort(spk, new SpkSorterByTime(true));
         spkIdx = 0;
         System.gc();
         double baselineStart = 0;
@@ -40,7 +60,7 @@ public class FileParser {
         EventType firstOdor = EventType.unknown;
         EventType secondOdor = EventType.unknown;
         EventType response;
-
+        
         int sessionIdx = 0;
         for (double[] evtDouble : evts) {
             int[] evt = new int[4];
@@ -72,17 +92,17 @@ public class FileParser {
                 case 7:
                     response = responses[evt[2] - 4];
                     if (firstOdor != EventType.unknown && secondOdor != EventType.unknown) {
-                        double trialDelay = secondOdorEnd - baselineStart - 3;
+//                        double trialDelay = secondOdorEnd - baselineStart - 3;
 //                        if (trialDelay > 4.8 && trialDelay < 5.2) {
 //                            System.out.println("length " + (secondOdorEnd - baselineStart));
-                            sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
-                            EventType[] behaviorTrial = {firstOdor, secondOdor, response};
-                            behaviorSession.add(behaviorTrial);
+                        sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
+                        EventType[] behaviorTrial = {firstOdor, secondOdor, response};
+                        behaviorSession.add(behaviorTrial);
 //                        }
                     }
                     firstOdor = EventType.unknown;
                     secondOdor = EventType.unknown;
-
+                    
                     break;
                 case 9:
                 case 10:
@@ -103,14 +123,14 @@ public class FileParser {
         miceDay.setBehaviorSessions(behaviorSessions);
         return miceDay;
     }
-
+    
     private void sortSpikes(double[][] spk, MiceDay miceDay, double baselineStart, double secondOdorEnd, EventType firstOdor, EventType secondOdor, EventType response, int sessionIdx, int trialIdx) {
         while (spkIdx < spk.length && spk[spkIdx][2] < secondOdorEnd) {
-            if (spk[spkIdx][2] > baselineStart) {
+            if (spk[spkIdx][2] > baselineStart && spk[spkIdx][1] > 0.5) {
                 Trial currentTrial = miceDay.getTetrode((int) Math.round(spk[spkIdx][0]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1]))
                         .getTrial(sessionIdx, trialIdx);
-
+                
                 if (!currentTrial.isSet()) {
                     currentTrial.setTrialParameter(firstOdor, secondOdor, response, secondOdorEnd - baselineStart);
                 }
@@ -119,7 +139,7 @@ public class FileParser {
             spkIdx++;
         }
     }
-
+    
     private void poolTrials(MiceDay miceDay) {
         for (Tetrode tet : miceDay.getTetrodes()) {
             for (SingleUnit unit : tet.getUnits()) {
@@ -127,5 +147,5 @@ public class FileParser {
             }
         }
     }
-
+    
 }
