@@ -31,6 +31,7 @@ public class MiceDay {
                 } else {
                     results.add(Boolean.FALSE);
                 }
+                
                 int sumTrial = results.size();
                 if (sumTrial >= 40) {
                     int count = 0;
@@ -60,12 +61,12 @@ public class MiceDay {
         return tetrodes.values();
     }
 
-    public void removeSession(int sessionIdx) {
-        for (Tetrode tetrode : tetrodes.values()) {
-            tetrode.removeSession(sessionIdx);
-        }
-
-    }
+//    public void removeSession(int sessionIdx) {
+//        for (Tetrode tetrode : tetrodes.values()) {
+//            tetrode.removeSession(sessionIdx);
+//        }
+//
+//    }
 
     int countCorrectTrialByFirstOdor(EventType odor) {
         int count = 0;

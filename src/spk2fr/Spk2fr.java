@@ -12,31 +12,42 @@ import java.util.ArrayList;
  *
  * @author Libra
  */
-public class Spk2fr{
+public class Spk2fr {
 
-    final private FileParser fp;
-    private MiceDay miceDay;
-    private boolean wellTrainOnly = false;
-    private ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
-    private double refracRatio = 0.0015;
+    final protected FileParser fp;
+    protected MiceDay miceDay;
+    protected int wellTrainOnly = 0;//0=not well-trained; 1=well-trained; 2=include all;
+    protected ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
+    protected double refracRatio = 0.0015;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        System.out.println(Runtime.getRuntime().maxMemory() / 1024 / 1024);
     }
 
-    public Spk2fr() {
-        fp = new FileParser();
+//    public Spk2fr() {
+//        fp = new FileParser();
+//    }
+    public Spk2fr(boolean wjFormat) {
+        if (wjFormat) {
+            fp = new FileParserWJ();
+        } else {
+            fp = new FileParser();
+        }
+
     }
 
     public void spk2fr(double[][] evts, double[][] spk) {
-        miceDay = fp.processFile(evts, spk);
-        for (Tetrode t : miceDay.getTetrodes()) {
-            t.removeSparseFiringUnits(leastFR,
-                    miceDay.countCorrectTrialByFirstOdor(EventType.OdorA)
-                    + miceDay.countCorrectTrialByFirstOdor(EventType.OdorB), refracRatio);
+        if (evts != null && spk != null) {
+            miceDay = fp.processFile(evts, spk);
+            for (Tetrode t : miceDay.getTetrodes()) {
+                t.removeSparseFiringUnits(leastFR,
+                        miceDay.countByCorrect(EventType.OdorA)[0] + miceDay.countByCorrect(EventType.OdorA)[1]
+                        + miceDay.countByCorrect(EventType.OdorB)[0] + miceDay.countByCorrect(EventType.OdorB)[1], refracRatio);
+            }
         }
     }
 
@@ -52,7 +63,7 @@ public class Spk2fr{
 //        }
 //        return baseTS.toArray(new double[baseTS.size()][]);
 //    }
-    private int[] getTrialNum(String type) {
+    protected int[] getTrialNum(String type) {
         ClassifyType cType;
         int typeATrials = -1;
         int typeBTrials = -1;
@@ -76,7 +87,7 @@ public class Spk2fr{
             int[] counts = miceDay.countByCorrect(EventType.OdorA);
             typeATrials = counts[0];
             typeBTrials = counts[1];
-            System.out.println("A ,"+typeATrials+"\t"+typeBTrials);
+            System.out.println("A ," + typeATrials + "\t" + typeBTrials);
             cType = ClassifyType.BY_CORRECT_OdorA;
         } else if (type.equalsIgnoreCase("allA")) {
             int[] counts = miceDay.countByCorrect(EventType.OdorA);
@@ -92,7 +103,7 @@ public class Spk2fr{
             int[] counts = miceDay.countByCorrect(EventType.OdorB);
             typeATrials = counts[0];
             typeBTrials = counts[1];
-            System.out.println("B ,"+typeATrials+"\t"+typeBTrials);
+            System.out.println("B ," + typeATrials + "\t" + typeBTrials);
             cType = ClassifyType.BY_CORRECT_OdorB;
         } else if (type.equalsIgnoreCase("allB")) {
             int[] counts = miceDay.countByCorrect(EventType.OdorB);
@@ -115,9 +126,11 @@ public class Spk2fr{
      For temporary check only
      */
     public double[][][][] getTS(String type) {
-        if (wellTrainOnly && !miceDay.isWellTrained()) {
+        if (miceDay == null
+                || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained())) {
             return null;
         }
+
         int[] params = getTrialNum(type);
 //        ClassifyType cType = ClassifyType.values()[params[0]];
 //        int typeATrials = params[1];
@@ -133,8 +146,8 @@ public class Spk2fr{
     }
 
     public double[][][] getSampleFringRate(String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-        if (wellTrainOnly && !miceDay.isWellTrained()) {
-//            System.out.println("Not Well Trained");
+        if (miceDay == null
+                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
             return null;
         }
         int[] params = getTrialNum(type);
@@ -197,14 +210,14 @@ public class Spk2fr{
         return fileList;
     }
 
-    public void setWellTrainOnly(boolean wellTrain) {
+    public void setWellTrainOnly(int wellTrain) {
         this.wellTrainOnly = wellTrain;
     }
 
     public void setLeastFR(String type) {
         if (type.equalsIgnoreCase("Average2Hz")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz;
-        }else if (type.equalsIgnoreCase("Average2HzWhole")) {
+        } else if (type.equalsIgnoreCase("Average2HzWhole")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz_WHOLETRIAL;
         } else if (type.equalsIgnoreCase("Average1Hz")) {
             leastFR = ClassifyType.BY_AVERAGE1Hz;
@@ -238,5 +251,5 @@ public class Spk2fr{
     public void setRefracRatio(double refracRatio) {
         this.refracRatio = refracRatio;
     }
-    
+
 }

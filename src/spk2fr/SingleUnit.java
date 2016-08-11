@@ -18,7 +18,7 @@ public class SingleUnit {
 
     final private HashMap<Integer, HashMap<Integer, Trial>> sessions;
     private ArrayList<Trial> trialPool;
-    private ArrayList<Double> spkPool=new ArrayList<>();
+    private ArrayList<Double> spkPool = new ArrayList<>();
 //    HashMap<Integer, Trial> trials;
 
     public SingleUnit() {
@@ -91,7 +91,8 @@ public class SingleUnit {
                 }
                 double avgLength = firedTrialLengthSum / firedTrial;
                 double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
-                return !(spkCount > trialCount * avgLength * fr); //2Hz
+
+                return !(spkCount / trialCount / avgLength > fr); //2Hz
             case BY_AVERAGE2Hz_WHOLETRIAL:
                 return spkPool.size() / (spkPool.get(spkPool.size() - 1) - spkPool.get(0)) < 2;
             case BY_PEAK2Hz_WHOLETRIAL:
@@ -244,18 +245,26 @@ public class SingleUnit {
             int[] binedPSTHB2 = new int[binCount];//time stamp
 
             for (Double d : psthTypeA1) {
-                binedPSTHA1[(int) ((d - binStart) / binSize)]++;
+                if ((int) ((d - binStart) / binSize) < binCount) {
+                    binedPSTHA1[(int) ((d - binStart) / binSize)]++;
+                }
             }
 
             for (Double d : psthTypeA2) {
-                binedPSTHA2[(int) ((d - binStart) / binSize)]++;
+                if ((int) ((d - binStart) / binSize) < binCount) {
+                    binedPSTHA2[(int) ((d - binStart) / binSize)]++;
+                }
             }
 
             for (Double d : psthTypeB1) {
-                binedPSTHB1[(int) ((d - binStart) / binSize)]++;
+                if ((int) ((d - binStart) / binSize) < binCount) {
+                    binedPSTHB1[(int) ((d - binStart) / binSize)]++;
+                }
             }
             for (Double d : psthTypeB2) {
-                binedPSTHB2[(int) ((d - binStart) / binSize)]++;
+                if ((int) ((d - binStart) / binSize) < binCount) {
+                    binedPSTHB2[(int) ((d - binStart) / binSize)]++;
+                }
             }
 
             double[] normalized = new double[binCount * 4];
