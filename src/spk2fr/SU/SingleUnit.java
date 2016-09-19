@@ -114,17 +114,17 @@ public class SingleUnit {
      */
     public double[][] getSampleFR(spk2fr.MiceDay miceday, String type, float[] bin, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
-        GetType gt = new GetType(miceday, type);
-        int typeATrialCount = gt.getTypeATrials();
-        int typeBTrialCount = gt.getTypeBTrials();
+        Processor pr = new GetType(type).getProcessor();
+        int typeATrialCount = pr.getTypeATrialNum(miceday);
+        int typeBTrialCount = pr.getTypeBTrialNum(miceday);
 
-        gt.getProcessor().fillPoolsByType(this.trialPool);
-        ArrayList<Trial> typeAPool = gt.getProcessor().getTypeAPool();
-        ArrayList<Trial> typeBPool = gt.getProcessor().getTypeBPool();
+        pr.fillPoolsByType(this.trialPool);
+        ArrayList<Trial> typeAPool = pr.getTypeAPool();
+        ArrayList<Trial> typeBPool = pr.getTypeBPool();
 
         double[][] samples = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
 
-        double[] stats = gt.getProcessor().getBaselineStats(this.trialPool, typeATrialCount + typeBTrialCount);
+        double[] stats = pr.getBaselineStats(this.trialPool, typeATrialCount + typeBTrialCount);
         double meanBaseFR = stats[0];
         double stdBaseFR = stats[1];
 
@@ -323,101 +323,22 @@ public class SingleUnit {
     class GetType {
 
         final private Processor processor;
-        final private int typeATrials;
-        final private int typeBTrials;
 
         public Processor getProcessor() {
             return processor;
         }
 
-        public int getTypeATrials() {
-            return typeATrials;
-        }
-
-        public int getTypeBTrials() {
-            return typeBTrials;
-        }
-
-        GetType(final spk2fr.MiceDay miceDay, String type) {
+        GetType(String type) {
 //            int[] counts;
             switch (type.toLowerCase()) {
                 case "odor":
                     processor = new Processor4Odor();
-                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
                     break;
-//                case "secondodor":
-//                    processor = ClassifyType.BY_SECOND_ODOR;
-//                    typeATrials = miceDay.countCorrectTrialByOdor(1, EventType.OdorA);
-//                    typeBTrials = miceDay.countCorrectTrialByOdor(1, EventType.OdorB);
-//                    break;
-//                case "odorwithinmeantrial":
-//                    processor = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL;
-//                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-//                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-//                    break;
                 case "odorz":
                     processor = new Processor4OdorZ();
-                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
                     break;
-//                case "odorwithinmeantrialz":
-//                    processor = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z;
-//                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-//                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-//                    break;
-//                case "correcta":
-//                    counts = miceDay.countByCorrect(EventType.OdorA);
-//                    typeATrials = counts[0];
-//                    typeBTrials = counts[1];
-//                    System.out.println("A ," + typeATrials + "\t" + typeBTrials);
-//                    processor = ClassifyType.BY_CORRECT_OdorA;
-//                    break;
-//                case "alla":
-//                    counts = miceDay.countByCorrect(EventType.OdorA);
-//                    typeATrials = counts[0] + counts[1];
-//                    typeBTrials = counts[0] + counts[1];
-//                    processor = ClassifyType.ALL_ODORA;
-//                    break;
-//                case "correctza":
-//                    counts = miceDay.countByCorrect(EventType.OdorA);
-//                    typeATrials = counts[0];
-//                    typeBTrials = counts[1];
-//                    processor = ClassifyType.BY_CORRECT_OdorA_Z;
-//                    break;
-//                case "correctb":
-//                    counts = miceDay.countByCorrect(EventType.OdorB);
-//                    typeATrials = counts[0];
-//                    typeBTrials = counts[1];
-//                    System.out.println("B ," + typeATrials + "\t" + typeBTrials);
-//                    processor = ClassifyType.BY_CORRECT_OdorB;
-//                    break;
-//                case "allb":
-//                    counts = miceDay.countByCorrect(EventType.OdorB);
-//                    typeATrials = counts[0] + counts[1];
-//                    typeBTrials = counts[0] + counts[1];
-//                    processor = ClassifyType.ALL_ODORB;
-//                    break;
-//                case "correctzb":
-//                    counts = miceDay.countByCorrect(EventType.OdorB);
-//                    typeATrials = counts[0];
-//                    typeBTrials = counts[1];
-//                    processor = ClassifyType.BY_CORRECT_OdorB_Z;
-//                    break;
-//                case "match":
-//                    processor = ClassifyType.BY_MATCH;
-//                    typeATrials = miceDay.countCorrectTrialByMatch(EventType.MATCH, true);
-//                    typeBTrials = miceDay.countCorrectTrialByMatch(EventType.NONMATCH, true);
-//                    break;
-//                case "matchincincorr":
-//                    processor = ClassifyType.BY_MATCH;
-//                    typeATrials = miceDay.countCorrectTrialByMatch(EventType.MATCH, false);
-//                    typeBTrials = miceDay.countCorrectTrialByMatch(EventType.NONMATCH, false);
-//                    break;
                 case "opsuppress":
                     processor = new Processor4OpSuppress();
-                    typeATrials = miceDay.getBehaviorSessions().get(0).size();
-                    typeBTrials = miceDay.getBehaviorSessions().get(0).size();
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown Processor Type");

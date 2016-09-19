@@ -16,6 +16,7 @@ import spk2fr.MiceDay;
 public abstract class Processor {
     ArrayList<Trial> typeAPool=new ArrayList<>();
     ArrayList<Trial> typeBPool=new ArrayList<>();
+
     
     public ArrayList<Trial> getTypeAPool() {
         return typeAPool;
@@ -32,5 +33,9 @@ public abstract class Processor {
     abstract double[] getBaselineStats(final ArrayList<Trial> trialPool, int totalTrialCount);
 
     abstract void fillPoolsByType(final ArrayList<Trial> trialPool);
+    
+    abstract int getTypeATrialNum(MiceDay md);
+    
+    abstract int getTypeBTrialNum(MiceDay md);
 
 }

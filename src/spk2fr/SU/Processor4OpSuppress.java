@@ -6,6 +6,7 @@
 package spk2fr.SU;
 
 import java.util.ArrayList;
+import spk2fr.MiceDay;
 
 /**
  *
@@ -43,4 +44,16 @@ public class Processor4OpSuppress extends Processor {
         }
     }
 
+    @Override
+    int getTypeATrialNum(MiceDay md) {
+        return md.getBehaviorSessions().get(0).size();
+    }
+
+    @Override
+    int getTypeBTrialNum(MiceDay md) {
+        return md.getBehaviorSessions().get(0).size();
+    }
+
+    
+    
 }

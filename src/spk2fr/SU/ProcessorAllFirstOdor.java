@@ -7,6 +7,7 @@ package spk2fr.SU;
 
 import java.util.ArrayList;
 import spk2fr.EventType;
+import spk2fr.MiceDay;
 
 /**
  *
@@ -24,4 +25,17 @@ public abstract class ProcessorAllFirstOdor extends Processor {
             }
         }
     }
+
+   
+
+    @Override
+    int getTypeATrialNum(MiceDay md) {
+        return md.countCorrectTrialByOdor(0, EventType.OdorA);
+    }
+
+    @Override
+    int getTypeBTrialNum(MiceDay md) {
+        return md.countCorrectTrialByOdor(0, EventType.OdorB);
+    }
+
 }

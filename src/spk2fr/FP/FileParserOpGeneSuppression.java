@@ -20,6 +20,7 @@ public class FileParserOpGeneSuppression extends spk2fr.FP.FileParser {
     public MiceDay processFile(double[][] evts, double[][] spk) {
         MiceDay miceDay = new MiceDay();
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
+        Arrays.sort(spk, new SpkSorterByTime(true));
         for (double[] oneSpk : spk) {
             if (oneSpk[1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(oneSpk[0]))
@@ -27,7 +28,6 @@ public class FileParserOpGeneSuppression extends spk2fr.FP.FileParser {
             }
         }
 
-        Arrays.sort(spk, new SpkSorterByTime(true));
         spkIdx = 0;
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
         for (double[] ts : evts) {

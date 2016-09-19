@@ -20,6 +20,7 @@ public class FileParserWJ extends FileParser{
     public MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
+        Arrays.sort(spk, new SpkSorterByTime(true));
         for (double[] oneSpk : spk) {
             if (oneSpk[1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(oneSpk[0]))
@@ -27,7 +28,6 @@ public class FileParserWJ extends FileParser{
             }
         }
 
-        Arrays.sort(spk, new SpkSorterByTime(true));
         spkIdx = 0;
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
 

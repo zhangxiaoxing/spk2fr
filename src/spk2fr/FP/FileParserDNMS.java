@@ -20,6 +20,7 @@ public class FileParserDNMS extends FileParser {
     public MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
+        Arrays.sort(spk, new FileParser.SpkSorterByTime(true));
         for (double[] oneSpk : spk) {
             if (oneSpk[1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(oneSpk[0]))
@@ -27,7 +28,6 @@ public class FileParserDNMS extends FileParser {
             }
         }
 
-        Arrays.sort(spk, new FileParser.SpkSorterByTime(true));
         spkIdx = 0;
         double baselineStart = 0;
         double secondOdorEnd = 0;
