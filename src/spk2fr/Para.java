@@ -77,16 +77,17 @@ public class Para {
 
         @Override
         public double[][][] call() throws Exception {
-            Spk2fr s2f = new Spk2fr(format);
+            Spk2fr s2f = new Spk2fr();
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(classify);
-            if (format.toLowerCase().equals("wj")){
-                s2f.spk2fr(MatFile.getFile(evtFile, "TrialInfo"), MatFile.getFile(spkFile, "Spk"));
+            if (format.toLowerCase().equals("wj")) {
+                return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "TrialInfo"), MatFile.getFile(spkFile, "Spk"), format),
+                        type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
             } else {
-                s2f.spk2fr(MatFile.getFile(evtFile, "evts"), MatFile.getFile(spkFile, "data"));
+                return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "evts"), MatFile.getFile(spkFile, "data"), format),
+                        type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
             }
-            return s2f.getSampleFringRate(type, binStart, binSize, binEnd, sampleSize,repeats);
         }
 
     }

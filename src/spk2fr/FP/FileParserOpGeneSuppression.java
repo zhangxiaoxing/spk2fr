@@ -3,21 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package spk2fr.OpSupress;
+package spk2fr.FP;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import spk2fr.EventType;
-import spk2fr.FileParserDNMS;
 import spk2fr.MiceDay;
 
 /**
  *
  * @author Libra
  */
-public class FileParserOpGeneSuppression extends FileParserDNMS {
+public class FileParserOpGeneSuppression extends spk2fr.FP.FileParser {
+
     @Override
-    protected MiceDay processFile(double[][] evts, double[][] spk) {
+    public MiceDay processFile(double[][] evts, double[][] spk) {
         MiceDay miceDay = new MiceDay();
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         for (double[] oneSpk : spk) {

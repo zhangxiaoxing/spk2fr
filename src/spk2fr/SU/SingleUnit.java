@@ -3,12 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package spk2fr;
+package spk2fr.SU;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.apache.commons.math3.stat.StatUtils;
+import spk2fr.ClassifyType;
+import spk2fr.EventType;
 
 /**
  *
@@ -17,8 +18,8 @@ import org.apache.commons.math3.stat.StatUtils;
 public class SingleUnit {
 
     final private HashMap<Integer, HashMap<Integer, Trial>> sessions;
-    private ArrayList<Trial> trialPool;
-    private ArrayList<Double> spkPool = new ArrayList<>();
+    final private ArrayList<Trial> trialPool = new ArrayList<>();
+    final private ArrayList<Double> spkPool = new ArrayList<>();
 //    HashMap<Integer, Trial> trials;
 
     public SingleUnit() {
@@ -31,6 +32,7 @@ public class SingleUnit {
 
     public SingleUnit(HashMap<Integer, HashMap<Integer, Trial>> sessions) {
         this.sessions = sessions;
+
 //        spkPool = new ArrayList<>();
     }
 
@@ -110,124 +112,23 @@ public class SingleUnit {
     /*
      SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
      */
-    public double[][] getSampleFR(ClassifyType cType, int typeATrialCount, int typeBTrialCount, float binStart, float binSize, float binEnd, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
+    public double[][] getSampleFR(spk2fr.MiceDay miceday, String type, float[] bin, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
-        double meanBaseFR;
-        double stdBaseFR;
-        if (cType == ClassifyType.BY_ODOR_Z || cType == ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z
-                || cType == ClassifyType.BY_CORRECT_OdorA_Z || cType == ClassifyType.BY_CORRECT_OdorB_Z
-                || cType == ClassifyType.BY_OP_SUPPRESS) {
-            double[] stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
-            meanBaseFR = stats[0];
-            stdBaseFR = stats[1];
-        } else {
-            meanBaseFR = 0;
-            stdBaseFR = 1;
-        }
+        GetType gt = new GetType(miceday, type);
+        int typeATrialCount = gt.getTypeATrials();
+        int typeBTrialCount = gt.getTypeBTrials();
 
-//        System.out.println(meanBaseFR+", "+stdBaseFR);
-        ArrayList<Trial> typeAPool = new ArrayList<>();
-        ArrayList<Trial> typeBPool = new ArrayList<>();
-        switch (cType) {
-            case BY_ODOR:
-            case BY_ODOR_WITHIN_MEAN_TRIAL:
-            case BY_ODOR_Z:
-            case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
-                for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
-                        typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-            case BY_OP_SUPPRESS:
-                for (Trial trial : this.trialPool) {
-                    typeAPool.add(trial);
-                    typeBPool.add(trial);
-                }
-                break;
-            case BY_SECOND_ODOR:
-                for (Trial trial : this.trialPool) {
-                    if (trial.secondOdorIs(EventType.OdorA) && trial.isCorrect()) {
-                        typeAPool.add(trial);
-                    } else if (trial.secondOdorIs(EventType.OdorB) && trial.isCorrect()) {
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-            case BY_MATCH:
-                for (Trial trial : this.trialPool) {
-                    if (trial.isMatch() && trial.isCorrect()) {
-                        typeAPool.add(trial);
-                    } else if (trial.isCorrect() && !trial.isMatch()) {
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-            case BY_CORRECT_OdorA:
-            case BY_CORRECT_OdorA_Z:
-                for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
-                        typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(EventType.OdorA) && !trial.isCorrect()) {
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-            case BY_CORRECT_OdorB:
-            case BY_CORRECT_OdorB_Z:
-                for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
-                        typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(EventType.OdorB) && !trial.isCorrect()) {
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-            case ALL_ODORA:
-                for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA)) {
-                        typeAPool.add(trial);
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-            case ALL_ODORB:
-                for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorB)) {
-                        typeAPool.add(trial);
-                        typeBPool.add(trial);
-                    }
-                }
-                break;
-        }
+        gt.getProcessor().fillPoolsByType(this.trialPool);
+        ArrayList<Trial> typeAPool = gt.getProcessor().getTypeAPool();
+        ArrayList<Trial> typeBPool = gt.getProcessor().getTypeBPool();
+
+        double[][] samples = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
+
+        double[] stats = gt.getProcessor().getBaselineStats(this.trialPool, typeATrialCount + typeBTrialCount);
+        double meanBaseFR = stats[0];
+        double stdBaseFR = stats[1];
 
         RandomDataGenerator rng = new RandomDataGenerator();
-        double[][] samples = new double[repeatCount][];
-        if (sampleCount[0][0] + sampleCount[0][1] > typeATrialCount) {
-            if (sampleCount[0][1] < 2) {
-                sampleCount[0][0] = typeATrialCount - sampleCount[0][1];
-            } else {
-                sampleCount[0][0] = typeATrialCount / 2;
-                sampleCount[0][1] = typeATrialCount / 2;
-            }
-        }
-        if (sampleCount[1][0] + sampleCount[1][1] > typeBTrialCount) {
-            if (sampleCount[1][1] < 2) {
-                sampleCount[1][0] = typeBTrialCount - sampleCount[1][1];
-            } else {
-                sampleCount[1][0] = typeBTrialCount / 2;
-                sampleCount[1][1] = typeBTrialCount / 2;
-            }
-        }
-
-        if (sampleCount[0][0] < 1 || sampleCount[1][0] < 1) {
-//            System.out.print(sampleCount[0][0]+", "+sampleCount[0][1]+", "+sampleCount[1][0]+", "+sampleCount[1][1]+", ");
-            System.out.println("Not Enough Trial!");
-            return null;
-        }
-
         for (int repeat = 0; repeat < repeatCount; repeat++) {
 
             int[] aPerm = rng.nextPermutation(typeATrialCount, sampleCount[0][0] + sampleCount[0][1]);
@@ -260,6 +161,11 @@ public class SingleUnit {
                     psthTypeB2.addAll(typeBPool.get(bPerm[i]).getSpikesList());
                 }
             }
+
+            float binStart = bin[0];
+            float binSize = bin[1];
+            float binEnd = bin[2];
+
             int binCount = Math.round((binEnd - binStart) / binSize);
             int[] binedPSTHA1 = new int[binCount];//time stamp
             int[] binedPSTHA2 = new int[binCount];//time stamp
@@ -313,7 +219,7 @@ public class SingleUnit {
     }
 
     public void poolTrials() {
-        this.trialPool = new ArrayList<>();
+
         for (HashMap<Integer, Trial> sess : this.sessions.values()) {
             for (Trial t : sess.values()) {
                 trialPool.add(t);
@@ -321,101 +227,31 @@ public class SingleUnit {
         }
     }
 
-    private double[] getBaselineStats(ClassifyType cType, ArrayList<Trial> trialPool, int totalTrialCount) {
-//        System.out.println(totalTrialCount);
-        double[] baselineTSCount = new double[totalTrialCount];
-        int trialIdx = 0;
-        boolean allZero = true;
-        switch (cType) {
-
-            case BY_ODOR_Z:
-                for (Trial trial : trialPool) {
-//                    System.out.println(trialPool.size());
-                    if (trial.isCorrect()) {
-                        for (Double d : trial.getSpikesList()) {
-                            if (d < 0) {
-                                baselineTSCount[trialIdx]++;
-                                allZero = false;
-                            } else {
-                                break;
-                            }
-                        }
-                        trialIdx++;
-                    }
-                }
-                break;
-            case BY_OP_SUPPRESS:
-                for (Trial trial : trialPool) {
-                    for (Double d : trial.getSpikesList()) {
-                        if (d < 1) {
-                            baselineTSCount[trialIdx]++;
-                            allZero = false;
-                        } else {
-                            break;
-                        }
-                    }
-                    trialIdx++;
-                }
-                break;
-
-            case BY_CORRECT_OdorA_Z:
-                for (Trial trial : trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA)) {
-                        for (Double d : trial.getSpikesList()) {
-                            if (d < 0) {
-                                baselineTSCount[trialIdx]++;
-                                allZero = false;
-                            } else {
-                                break;
-                            }
-                        }
-                        trialIdx++;
-                    }
-                }
-                break;
-
-            case BY_CORRECT_OdorB_Z:
-                for (Trial trial : trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorB)) {
-                        for (Double d : trial.getSpikesList()) {
-                            if (d >= 1 & d < 2) {
-                                baselineTSCount[trialIdx]++;
-                                allZero = false;
-                            } else if (d >= 2) {
-                                break;
-                            }
-                        }
-                        trialIdx++;
-                    }
-                }
-                break;
-
-            case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
-                int[] tsbins = new int[10];
-                for (Trial trial : trialPool) {
-//                    System.out.println(trialPool.size());
-                    if (trial.isCorrect()) {
-                        for (Double d : trial.getSpikesList()) {
-                            if (d < 0 && d > -1) {
-                                tsbins[(int) ((d + 1) * 10)]++;
-                                allZero = false;
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                double[] binFR = new double[10];
-                for (int i = 0; i < 10; i++) {
-                    binFR[i] = (double) tsbins[i] / totalTrialCount / 0.1;
-                }
-                return new double[]{StatUtils.mean(binFR), Math.sqrt(StatUtils.variance(binFR))};
-//                break;
+    double[][] reduceSampleIfNecessary(final int[][] sampleCount, int typeATrialCount, int typeBTrialCount, int repeat) {
+        double[][] samples = new double[repeat][];
+        if (sampleCount[0][0] + sampleCount[0][1] > typeATrialCount) {
+            if (sampleCount[0][1] < 2) {
+                sampleCount[0][0] = typeATrialCount - sampleCount[0][1];
+            } else {
+                sampleCount[0][0] = typeATrialCount / 2;
+                sampleCount[0][1] = typeATrialCount / 2;
+            }
         }
-        if (allZero) {
-            baselineTSCount[0] = 1;
+        if (sampleCount[1][0] + sampleCount[1][1] > typeBTrialCount) {
+            if (sampleCount[1][1] < 2) {
+                sampleCount[1][0] = typeBTrialCount - sampleCount[1][1];
+            } else {
+                sampleCount[1][0] = typeBTrialCount / 2;
+                sampleCount[1][1] = typeBTrialCount / 2;
+            }
         }
-        return new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
+
+        if (sampleCount[0][0] < 1 || sampleCount[1][0] < 1) {
+//            System.out.print(sampleCount[0][0]+", "+sampleCount[0][1]+", "+sampleCount[1][0]+", "+sampleCount[1][1]+", ");
+            System.out.println("Not Enough Trial!");
+            return null;
+        }
+        return samples;
     }
 
 //    /*
@@ -483,4 +319,110 @@ public class SingleUnit {
 
         return new double[][][]{firingTSOdorA, firingTSOdorB};
     }
+
+    class GetType {
+
+        final private Processor processor;
+        final private int typeATrials;
+        final private int typeBTrials;
+
+        public Processor getProcessor() {
+            return processor;
+        }
+
+        public int getTypeATrials() {
+            return typeATrials;
+        }
+
+        public int getTypeBTrials() {
+            return typeBTrials;
+        }
+
+        GetType(final spk2fr.MiceDay miceDay, String type) {
+//            int[] counts;
+            switch (type.toLowerCase()) {
+                case "odor":
+                    processor = new Processor4Odor();
+                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
+                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
+                    break;
+//                case "secondodor":
+//                    processor = ClassifyType.BY_SECOND_ODOR;
+//                    typeATrials = miceDay.countCorrectTrialByOdor(1, EventType.OdorA);
+//                    typeBTrials = miceDay.countCorrectTrialByOdor(1, EventType.OdorB);
+//                    break;
+//                case "odorwithinmeantrial":
+//                    processor = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL;
+//                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
+//                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
+//                    break;
+                case "odorz":
+                    processor = new Processor4OdorZ();
+                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
+                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
+                    break;
+//                case "odorwithinmeantrialz":
+//                    processor = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z;
+//                    typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
+//                    typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
+//                    break;
+//                case "correcta":
+//                    counts = miceDay.countByCorrect(EventType.OdorA);
+//                    typeATrials = counts[0];
+//                    typeBTrials = counts[1];
+//                    System.out.println("A ," + typeATrials + "\t" + typeBTrials);
+//                    processor = ClassifyType.BY_CORRECT_OdorA;
+//                    break;
+//                case "alla":
+//                    counts = miceDay.countByCorrect(EventType.OdorA);
+//                    typeATrials = counts[0] + counts[1];
+//                    typeBTrials = counts[0] + counts[1];
+//                    processor = ClassifyType.ALL_ODORA;
+//                    break;
+//                case "correctza":
+//                    counts = miceDay.countByCorrect(EventType.OdorA);
+//                    typeATrials = counts[0];
+//                    typeBTrials = counts[1];
+//                    processor = ClassifyType.BY_CORRECT_OdorA_Z;
+//                    break;
+//                case "correctb":
+//                    counts = miceDay.countByCorrect(EventType.OdorB);
+//                    typeATrials = counts[0];
+//                    typeBTrials = counts[1];
+//                    System.out.println("B ," + typeATrials + "\t" + typeBTrials);
+//                    processor = ClassifyType.BY_CORRECT_OdorB;
+//                    break;
+//                case "allb":
+//                    counts = miceDay.countByCorrect(EventType.OdorB);
+//                    typeATrials = counts[0] + counts[1];
+//                    typeBTrials = counts[0] + counts[1];
+//                    processor = ClassifyType.ALL_ODORB;
+//                    break;
+//                case "correctzb":
+//                    counts = miceDay.countByCorrect(EventType.OdorB);
+//                    typeATrials = counts[0];
+//                    typeBTrials = counts[1];
+//                    processor = ClassifyType.BY_CORRECT_OdorB_Z;
+//                    break;
+//                case "match":
+//                    processor = ClassifyType.BY_MATCH;
+//                    typeATrials = miceDay.countCorrectTrialByMatch(EventType.MATCH, true);
+//                    typeBTrials = miceDay.countCorrectTrialByMatch(EventType.NONMATCH, true);
+//                    break;
+//                case "matchincincorr":
+//                    processor = ClassifyType.BY_MATCH;
+//                    typeATrials = miceDay.countCorrectTrialByMatch(EventType.MATCH, false);
+//                    typeBTrials = miceDay.countCorrectTrialByMatch(EventType.NONMATCH, false);
+//                    break;
+                case "opsuppress":
+                    processor = new Processor4OpSuppress();
+                    typeATrials = miceDay.getBehaviorSessions().get(0).size();
+                    typeBTrials = miceDay.getBehaviorSessions().get(0).size();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown Processor Type");
+            }
+        }
+    }
+
 }

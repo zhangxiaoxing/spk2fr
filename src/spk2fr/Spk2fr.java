@@ -5,8 +5,12 @@
  */
 package spk2fr;
 
+import spk2fr.FP.FileParser;
+import spk2fr.FP.FileParserDNMS;
+import spk2fr.FP.FileParserWJ;
 import java.io.File;
 import java.util.ArrayList;
+import spk2fr.SU.SingleUnit;
 
 /**
  *
@@ -14,8 +18,7 @@ import java.util.ArrayList;
  */
 public class Spk2fr {
 
-    final protected FileParserDNMS fp;
-    protected MiceDay miceDay;
+//    final protected FileParserDNMS fp;
     protected int wellTrainOnly = 0;//0=not well-trained; 1=well-trained; 2=include all;
     protected ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
     protected double refracRatio = 0.0015;
@@ -31,32 +34,13 @@ public class Spk2fr {
 //    public Spk2fr() {
 //        fp = new FileParserDNMS();
 //    }
-    public Spk2fr(String format) {
-        switch (format.toLowerCase()) {
-            case "wj":
-                fp = new FileParserWJ();
-                break;
-            case "opsuppress":
-                fp = new spk2fr.OpSupress.FileParserOpGeneSuppression();
-                break;
-            default:
-                System.out.println("Unknown format:["+format+"] , using default.");
-                fp = new FileParserDNMS();
-        }
-
-    }
-
-    public void spk2fr(double[][] evts, double[][] spk) {
-        if (evts != null && spk != null) {
-            miceDay = fp.processFile(evts, spk);
-            for (Tetrode t : miceDay.getTetrodes()) {
-                t.removeSparseFiringUnits(leastFR,
-                        miceDay.countByCorrect(EventType.OdorA)[0] + miceDay.countByCorrect(EventType.OdorA)[1]
-                        + miceDay.countByCorrect(EventType.OdorB)[0] + miceDay.countByCorrect(EventType.OdorB)[1], refracRatio);
-            }
-        }
-    }
-
+//    public Spk2fr(String format) {
+//
+//    }
+//
+//    public void spk2fr(double[][] evts, double[][] spk) {
+//
+//    }
 //    /*
 //    For temporary check only
 //    */
@@ -69,132 +53,64 @@ public class Spk2fr {
 //        }
 //        return baseTS.toArray(new double[baseTS.size()][]);
 //    }
-    protected int[] getTrialNum(String type) {
-        ClassifyType cType;
-        int typeATrials;
-        int typeBTrials;
-        int[] counts;
-        switch (type.toLowerCase()) {
-            case "odor":
-                cType = ClassifyType.BY_ODOR;
-                typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-                break;
-            case "secondodor":
-                cType = ClassifyType.BY_SECOND_ODOR;
-                typeATrials = miceDay.countCorrectTrialByOdor(1, EventType.OdorA);
-                typeBTrials = miceDay.countCorrectTrialByOdor(1, EventType.OdorB);
-                break;
-            case "odorwithinmeantrial":
-                cType = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL;
-                typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-                break;
-            case "odorz":
-                cType = ClassifyType.BY_ODOR_Z;
-                typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-                break;
-            case "odorwithinmeantrialz":
-                cType = ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z;
-                typeATrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                typeBTrials = miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-                break;
-            case "correcta":
-                counts = miceDay.countByCorrect(EventType.OdorA);
-                typeATrials = counts[0];
-                typeBTrials = counts[1];
-                System.out.println("A ," + typeATrials + "\t" + typeBTrials);
-                cType = ClassifyType.BY_CORRECT_OdorA;
-                break;
-            case "alla":
-                counts = miceDay.countByCorrect(EventType.OdorA);
-                typeATrials = counts[0] + counts[1];
-                typeBTrials = counts[0] + counts[1];
-                cType = ClassifyType.ALL_ODORA;
-                break;
-            case "correctza":
-                counts = miceDay.countByCorrect(EventType.OdorA);
-                typeATrials = counts[0];
-                typeBTrials = counts[1];
-                cType = ClassifyType.BY_CORRECT_OdorA_Z;
-                break;
-            case "correctb":
-                counts = miceDay.countByCorrect(EventType.OdorB);
-                typeATrials = counts[0];
-                typeBTrials = counts[1];
-                System.out.println("B ," + typeATrials + "\t" + typeBTrials);
-                cType = ClassifyType.BY_CORRECT_OdorB;
-                break;
-            case "allb":
-                counts = miceDay.countByCorrect(EventType.OdorB);
-                typeATrials = counts[0] + counts[1];
-                typeBTrials = counts[0] + counts[1];
-                cType = ClassifyType.ALL_ODORB;
-                break;
-            case "correctzb":
-                counts = miceDay.countByCorrect(EventType.OdorB);
-                typeATrials = counts[0];
-                typeBTrials = counts[1];
-                cType = ClassifyType.BY_CORRECT_OdorB_Z;
-                break;
-            case "match":
-                cType = ClassifyType.BY_MATCH;
-                typeATrials = miceDay.countCorrectTrialByMatch(EventType.MATCH, true);
-                typeBTrials = miceDay.countCorrectTrialByMatch(EventType.NONMATCH, true);
-                break;
-            case "matchincincorr":
-                cType = ClassifyType.BY_MATCH;
-                typeATrials = miceDay.countCorrectTrialByMatch(EventType.MATCH, false);
-                typeBTrials = miceDay.countCorrectTrialByMatch(EventType.NONMATCH, false);
-                break;
-            case "opsuppress":
-                cType = ClassifyType.BY_OP_SUPPRESS;
-                typeATrials = miceDay.getBehaviorSessions().get(0).size();
-                typeBTrials = miceDay.getBehaviorSessions().get(0).size();
-                break;
-            default:
-                System.out.println("Unknown classify type: " + type);
-                return null;
-        }
-        return new int[]{cType.ordinal(), typeATrials, typeBTrials};
-    }
 
     /*
      For temporary check only
      */
-    public double[][][][] getTS(String type) {
-        if (miceDay == null
-                || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained())) {
-            return null;
+//    public double[][][][] getTS(String type) {
+//        if (miceDay == null
+//                || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained())) {
+//            return null;
+//        }
+//
+////        int[] params = getTrialNum(type);
+////        ClassifyType cType = ClassifyType.values()[params[0]];
+////        int typeATrials = params[1];
+////        int typeBTrials = params[2];
+//        ArrayList<double[][][]> TS = new ArrayList<>();
+//        for (Tetrode tetrode : miceDay.getTetrodes()) {
+//            for (SingleUnit unit : tetrode.getUnits()) {
+//                TS.add(unit.getTrialTS(miceDay.countCorrectTrialByOdor(0, EventType.OdorA), miceDay.countCorrectTrialByOdor(0, EventType.OdorB)));
+//            }
+//        }
+//        return TS.toArray(new double[TS.size()][][][]);
+//    }
+    MiceDay parseEvts(Data data) {
+        FileParser fp;
+        switch (data.getFormat().toLowerCase()) {
+            case "wj":
+                fp = new FileParserWJ();
+                break;
+            case "opsuppress":
+                fp = new spk2fr.FP.FileParserOpGeneSuppression();
+                break;
+            default:
+                System.out.println("Unknown format:[" + data.getFormat() + "] , using default.");
+                fp = new FileParserDNMS();
         }
 
-//        int[] params = getTrialNum(type);
-//        ClassifyType cType = ClassifyType.values()[params[0]];
-//        int typeATrials = params[1];
-//        int typeBTrials = params[2];
-        ArrayList<double[][][]> TS = new ArrayList<>();
-        for (Tetrode tetrode : miceDay.getTetrodes()) {
-            for (SingleUnit unit : tetrode.getUnits()) {
-                TS.add(unit.getTrialTS(miceDay.countCorrectTrialByOdor(0, EventType.OdorA), miceDay.countCorrectTrialByOdor(0, EventType.OdorB)));
-            }
-        }
-        return TS.toArray(new double[TS.size()][][][]);
+        MiceDay miceDay = fp.processFile(data.getEvts(), data.getSpk()).removeSparseFiringUnits(leastFR, refracRatio);
+
+        return miceDay;
     }
 
-    public double[][][] getSampleFringRate(String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-        if (miceDay == null
-                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
+    public float[] setBin(float binStart, float binSize, float binEnd) {
+        return (new float[]{binStart, binSize, binEnd});
+    }
+
+    public Data buildData(double[][] evts, double[][] spk, String format) {
+        return new Data(evts, spk, format);
+    }
+
+    public double[][][] getSampleFringRate(Data data, String type, float[] bin, int[][] sampleSize, int repeats) {
+        MiceDay miceDay = parseEvts(data);
+        if ((wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
             return null;
         }
-        int[] params = getTrialNum(type);
-        ClassifyType cType = ClassifyType.values()[params[0]];
-        int typeATrials = params[1];
-        int typeBTrials = params[2];
         ArrayList<double[][]> frs = new ArrayList<>();
         for (Tetrode tetrode : miceDay.getTetrodes()) {
             for (SingleUnit unit : tetrode.getUnits()) {
-                double[][] rtn = unit.getSampleFR(cType, typeATrials, typeBTrials, binStart, binSize, binEnd, sampleSize, repeats);
+                double[][] rtn = unit.getSampleFR(miceDay, type, bin, sampleSize, repeats);
                 if (null != rtn) {
                     frs.add(rtn);
                 }
@@ -203,10 +119,9 @@ public class Spk2fr {
         return frs.toArray(new double[frs.size()][][]);
     }
 
-    public int getTrialCountByFirstOdor(int odor) {
-        return miceDay.countCorrectTrialByOdor(0, odor == 0 ? EventType.OdorA : EventType.OdorB);
-    }
-
+//    public int getTrialCountByFirstOdor(int odor) {
+//        return miceDay.countCorrectTrialByOdor(0, odor == 0 ? EventType.OdorA : EventType.OdorB);
+//    }
     public ArrayList<String> listFiles(String rootPath, String[] elements) {
         ArrayList<String> fileList = new ArrayList<>();
         if (rootPath == null) {
@@ -266,25 +181,50 @@ public class Spk2fr {
 
     }
 
-    public int[][] getBehaviorTrials() {
-
-        ArrayList<EventType[]> pool = new ArrayList<>();
-        for (ArrayList<EventType[]> sess : miceDay.getBehaviorSessions()) {
-            pool.addAll(sess);
-        }
-        int[][] rtn = new int[pool.size()][];
-        for (int i = 0; i < rtn.length; i++) {
-            rtn[i] = new int[]{pool.get(i)[0].ordinal(), pool.get(i)[1].ordinal(), pool.get(i)[2].ordinal()};
-        }
-        return rtn;
-    }
-
+//    public int[][] getBehaviorTrials() {
+//
+//        ArrayList<EventType[]> pool = new ArrayList<>();
+//        for (ArrayList<EventType[]> sess : miceDay.getBehaviorSessions()) {
+//            pool.addAll(sess);
+//        }
+//        int[][] rtn = new int[pool.size()][];
+//        for (int i = 0; i < rtn.length; i++) {
+//            rtn[i] = new int[]{pool.get(i)[0].ordinal(), pool.get(i)[1].ordinal(), pool.get(i)[2].ordinal()};
+//        }
+//        return rtn;
+//    }
     public double[][] rebuild(double[][] evts, double delay) {
         return RebuildEventFile.rebulid(evts, delay);
     }
 
     public void setRefracRatio(double refracRatio) {
         this.refracRatio = refracRatio;
+    }
+
+    public class Data {
+
+        final double[][] evts;
+        final double[][] spk;
+        final String format;
+
+        public Data(double[][] evts, double[][] spk, String format) {
+            this.evts = evts;
+            this.spk = spk;
+            this.format = format;
+        }
+
+        public double[][] getEvts() {
+            return evts;
+        }
+
+        public double[][] getSpk() {
+            return spk;
+        }
+
+        public String getFormat() {
+            return format;
+        }
+
     }
 
 }

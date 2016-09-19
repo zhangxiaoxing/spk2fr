@@ -7,6 +7,7 @@ package spk2fr;
 
 import java.util.Collection;
 import java.util.HashMap;
+import spk2fr.SU.SingleUnit;
 
 /**
  *
@@ -34,9 +35,6 @@ public class Tetrode {
     }
 
     public void removeSparseFiringUnits(ClassifyType type, int trialCount,double refracRatio) {
-//        for (SingleUnit unit : singleUnits.values()) {
-//            unit.removeSession(sessionIdx);
-//        }
         HashMap<Integer, SingleUnit> selectedUnits = new HashMap<>();
         for (Integer key : singleUnits.keySet()) {
             if (!singleUnits.get(key).isSparseFiring(type, trialCount,refracRatio)) {

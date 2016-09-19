@@ -74,12 +74,12 @@ public class MatPara {
 
         @Override
         public double[][][] call() throws Exception {
-            Spk2fr s2f = new Spk2fr(format);
+            Spk2fr s2f = new Spk2fr();
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(classify);
-            s2f.spk2fr(this.evt, this.spk);
-            return s2f.getSampleFringRate(type, binStart, binSize, binEnd, sampleSize, repeats);
+            return s2f.getSampleFringRate(s2f.buildData(evt, spk, format),
+                    type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
         }
 
     }

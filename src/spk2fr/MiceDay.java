@@ -67,7 +67,7 @@ public class MiceDay {
 //        }
 //
 //    }
-    int countCorrectTrialByOdor(int odorPosition, EventType odor) {
+    public int countCorrectTrialByOdor(int odorPosition, EventType odor) {
         int count = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
@@ -80,7 +80,7 @@ public class MiceDay {
         return count;
     }
 
-    int countCorrectTrialByMatch(EventType isMatch, boolean correct) {
+    public int countCorrectTrialByMatch(EventType isMatch, boolean correct) {
         int count = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
@@ -94,7 +94,7 @@ public class MiceDay {
         return count;
     }
 
-    int[] countByCorrect(EventType odor) {    //{correct, incorrect}
+    public int[] countByCorrect(EventType odor) {    //{correct, incorrect}
         int countCorrect = 0;
         int countIncorrect = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
@@ -117,6 +117,15 @@ public class MiceDay {
 
     public ArrayList<ArrayList<EventType[]>> getBehaviorSessions() {
         return behaviorSessions;
+    }
+
+    public MiceDay removeSparseFiringUnits(ClassifyType leastFR, double refracRatio) {
+        for (Tetrode t : this.getTetrodes()) {
+            t.removeSparseFiringUnits(leastFR,
+                    this.countByCorrect(EventType.OdorA)[0] + this.countByCorrect(EventType.OdorA)[1]
+                    + this.countByCorrect(EventType.OdorB)[0] + this.countByCorrect(EventType.OdorB)[1], refracRatio);
+        }
+        return this;
     }
 
 }
