@@ -17,9 +17,15 @@ public class MiceDay {
 
     final private HashMap<Integer, Tetrode> tetrodes;
     private ArrayList<ArrayList<EventType[]>> behaviorSessions; //EventType[] behaviorTrial = {firstOdor, secondOdor, response};
+    private double recordingLength;
 
+    
     public MiceDay() {
         tetrodes = new HashMap<>();
+    }
+    
+    public void setRecordingLength(double recordingLength) {
+        this.recordingLength = recordingLength;
     }
 
     public boolean isWellTrained() {
@@ -123,7 +129,7 @@ public class MiceDay {
         for (Tetrode t : this.getTetrodes()) {
             t.removeSparseFiringUnits(leastFR,
                     this.countByCorrect(EventType.OdorA)[0] + this.countByCorrect(EventType.OdorA)[1]
-                    + this.countByCorrect(EventType.OdorB)[0] + this.countByCorrect(EventType.OdorB)[1], refracRatio);
+                    + this.countByCorrect(EventType.OdorB)[0] + this.countByCorrect(EventType.OdorB)[1], refracRatio,recordingLength);
         }
         return this;
     }

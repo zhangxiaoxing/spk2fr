@@ -19,15 +19,20 @@ public class SingleUnit {
 
     final private HashMap<Integer, HashMap<Integer, Trial>> sessions;
     final private ArrayList<Trial> trialPool = new ArrayList<>();
-    final private ArrayList<Double> spkPool = new ArrayList<>();
-//    HashMap<Integer, Trial> trials;
+//    final private ArrayList<Double> spkPool = new ArrayList<>();
+    private int unitSPKCount = 0;
 
+//    HashMap<Integer, Trial> trials;
     public SingleUnit() {
         sessions = new HashMap<>();
     }
 
-    public void addspk(Double d) {
-        spkPool.add(d);
+//    public void addspk(Double d) {
+//        spkPool.add(d);
+//    }
+    public SingleUnit addspk() {
+        unitSPKCount++;
+        return this;
     }
 
     public SingleUnit(HashMap<Integer, HashMap<Integer, Trial>> sessions) {
@@ -50,7 +55,7 @@ public class SingleUnit {
         sessions.remove(sessionIdx);
     }
 
-    public boolean isSparseFiring(ClassifyType type, int trialCount, double refracRatio) {
+    public boolean isSparseFiring(ClassifyType type, int trialCount, double refracRatio, double recordingLength) {
         int totalSpike = 0;
         int lowRefracSpike = 0;
         for (Trial trial : trialPool) {
@@ -94,16 +99,17 @@ public class SingleUnit {
                 double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
                 return !(spkCount / trialCount / avgLength > fr); //2Hz
             case BY_AVERAGE2Hz_WHOLETRIAL:
-                return spkPool.size() / (spkPool.get(spkPool.size() - 1) - spkPool.get(0)) < 2;
-            case BY_PEAK2Hz_WHOLETRIAL:
-                if (spkPool.size() > 1) {
-                    for (int i = 1; i < spkPool.size(); i++) {
-                        if (spkPool.get(i) - spkPool.get(i - 1) < 0.5) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
+                return (unitSPKCount / recordingLength) < 2;
+//                return spkPool.size() / (spkPool.get(spkPool.size() - 1) - spkPool.get(0)) < 2;
+//            case BY_PEAK2Hz_WHOLETRIAL:
+//                if (spkPool.size() > 1) {
+//                    for (int i = 1; i < spkPool.size(); i++) {
+//                        if (spkPool.get(i) - spkPool.get(i - 1) < 0.5) {
+//                            return false;
+//                        }
+//                    }
+//                }
+//                return true;
         }
 
         return true;

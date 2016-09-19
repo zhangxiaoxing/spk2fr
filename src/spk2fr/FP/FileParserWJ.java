@@ -21,10 +21,12 @@ public class FileParserWJ extends FileParser{
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
         Arrays.sort(spk, new SpkSorterByTime(true));
+        miceDay.setRecordingLength(spk[spk.length-1][2]-spk[0][2]);
         for (double[] oneSpk : spk) {
             if (oneSpk[1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(oneSpk[0]))
-                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk(oneSpk[2]);
+                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk();
+//                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk(oneSpk[2]);
             }
         }
 
