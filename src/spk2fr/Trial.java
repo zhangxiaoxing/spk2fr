@@ -48,6 +48,10 @@ public class Trial {
         return this.firstOdor == odor;
     }
 
+    public boolean secondOdorIs(EventType odor) {
+        return this.secondOdor == odor;
+    }
+
 //    4 removal  
 //    public Double[] getSpikes(){
 //        return spks.toArray(new Double[spks.size()]);
@@ -62,5 +66,9 @@ public class Trial {
 
     public boolean isCorrect() {
         return response == EventType.CorrectRejection || response == EventType.Hit;
+    }
+    
+    public boolean isMatch(){
+        return firstOdor==secondOdor;
     }
 }

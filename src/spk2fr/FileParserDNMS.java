@@ -13,11 +13,11 @@ import java.util.Comparator;
  *
  * @author Libra
  */
-public class FileParser {
+public class FileParserDNMS {
 
     protected int spkIdx = 0;
 
-    class SpkSorterByTime implements Comparator<double[]> {
+    protected class SpkSorterByTime implements Comparator<double[]> {
 
         boolean byTime;// false=by id;
 
@@ -37,7 +37,7 @@ public class FileParser {
         }
     }
 
-    MiceDay processFile(double[][] evts, double[][] spk) {
+    protected MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
         for (double[] oneSpk : spk) {
@@ -49,7 +49,6 @@ public class FileParser {
 
         Arrays.sort(spk, new SpkSorterByTime(true));
         spkIdx = 0;
-        System.gc();
         double baselineStart = 0;
         double secondOdorEnd = 0;
         EventType[] responses = {EventType.FalseAlarm, EventType.CorrectRejection, EventType.Miss, EventType.Hit};
@@ -146,6 +145,5 @@ public class FileParser {
             }
         }
     }
-
 
 }

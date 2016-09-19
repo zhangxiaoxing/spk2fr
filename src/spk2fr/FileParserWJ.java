@@ -12,10 +12,10 @@ import java.util.Arrays;
  *
  * @author Libra
  */
-public class FileParserWJ extends FileParser {
+public class FileParserWJ extends FileParserDNMS {
 
     @Override
-    MiceDay processFile(double[][] evts, double[][] spk) {
+    protected MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
         for (double[] oneSpk : spk) {
@@ -27,7 +27,6 @@ public class FileParserWJ extends FileParser {
 
         Arrays.sort(spk, new SpkSorterByTime(true));
         spkIdx = 0;
-//        System.gc();
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
 
         int sessionIdx = 0;

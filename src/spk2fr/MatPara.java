@@ -14,10 +14,7 @@ import java.util.concurrent.Future;
  *
  * @author Libra
  */
-/*
-Parallel Processing
- */
-public class Para {
+public class MatPara {
 
     String format = "";
 
@@ -25,11 +22,11 @@ public class Para {
     final int wellTrainOnly;
     final double refracRatio;
 
-    public Para() {
+    public MatPara() {
         this(2, 0.0015);
     }
 
-    public Para(int wellTrain, double refracRatio) {
+    public MatPara(int wellTrain, double refracRatio) {
         int cpus = Runtime.getRuntime().availableProcessors();
         if (Runtime.getRuntime().maxMemory() / 1024 / 1024 < 8192) {
             cpus = 1;
@@ -40,20 +37,20 @@ public class Para {
         this.refracRatio = refracRatio;
     }
 
+    synchronized public Future<double[][][]> parGetSampleFR(double[][] evt, double[][] spk,
+            String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
+
+        return pool.submit(new ParSpk2fr(evt, spk, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
+    }
+
     public void setFormat(String format) {
         this.format = format;
     }
 
-    synchronized public Future<double[][][]> parGetSampleFR(String evtFile, String spkFile,
-            String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-
-        return pool.submit(new ParSpk2fr(evtFile, spkFile, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
-    }
-
     class ParSpk2fr implements Callable<double[][][]> {
 
-        final String evtFile;
-        final String spkFile;
+        final double[][] evt;
+        final double[][] spk;
         final String classify;
         final String type;
         final float binStart;
@@ -62,10 +59,10 @@ public class Para {
         final int[][] sampleSize;
         final int repeats;
 
-        public ParSpk2fr(String evtFile, String spkFile,
+        public ParSpk2fr(double[][] evt, double[][] spk,
                 String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-            this.evtFile = evtFile;
-            this.spkFile = spkFile;
+            this.evt = evt;
+            this.spk = spk;
             this.classify = classify;
             this.type = type;
             this.binStart = binStart;
@@ -81,12 +78,8 @@ public class Para {
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(classify);
-            if (format.toLowerCase().equals("wj")){
-                s2f.spk2fr(MatFile.getFile(evtFile, "TrialInfo"), MatFile.getFile(spkFile, "Spk"));
-            } else {
-                s2f.spk2fr(MatFile.getFile(evtFile, "evts"), MatFile.getFile(spkFile, "data"));
-            }
-            return s2f.getSampleFringRate(type, binStart, binSize, binEnd, sampleSize,repeats);
+            s2f.spk2fr(this.evt, this.spk);
+            return s2f.getSampleFringRate(type, binStart, binSize, binEnd, sampleSize, repeats);
         }
 
     }

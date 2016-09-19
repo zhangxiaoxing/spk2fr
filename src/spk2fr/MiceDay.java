@@ -31,7 +31,7 @@ public class MiceDay {
                 } else {
                     results.add(Boolean.FALSE);
                 }
-                
+
                 int sumTrial = results.size();
                 if (sumTrial >= 40) {
                     int count = 0;
@@ -67,13 +67,26 @@ public class MiceDay {
 //        }
 //
 //    }
-
-    int countCorrectTrialByFirstOdor(EventType odor) {
+    int countCorrectTrialByOdor(int odorPosition, EventType odor) {
         int count = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
-                
-                if (trial[0] == odor && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection)) {
+
+                if (trial[odorPosition] == odor && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    int countCorrectTrialByMatch(EventType isMatch, boolean correct) {
+        int count = 0;
+        for (ArrayList<EventType[]> session : behaviorSessions) {
+            for (EventType[] trial : session) {
+                boolean needCorrect = correct ? (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) : true;
+                if ((trial[0] == trial[1]) == (isMatch == EventType.MATCH)
+                        && needCorrect) {
                     count++;
                 }
             }

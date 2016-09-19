@@ -62,7 +62,6 @@ public class SingleUnit {
                 }
             }
         }
-//        System.out.println(lowRefracSpike+", "+totalSpike+", "+(double) lowRefracSpike/totalSpike);
         if (totalSpike < 1 || (double) lowRefracSpike / totalSpike > refracRatio) {
             return true;
         }
@@ -91,7 +90,6 @@ public class SingleUnit {
                 }
                 double avgLength = firedTrialLengthSum / firedTrial;
                 double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
-
                 return !(spkCount / trialCount / avgLength > fr); //2Hz
             case BY_AVERAGE2Hz_WHOLETRIAL:
                 return spkPool.size() / (spkPool.get(spkPool.size() - 1) - spkPool.get(0)) < 2;
@@ -117,8 +115,8 @@ public class SingleUnit {
         double meanBaseFR;
         double stdBaseFR;
         if (cType == ClassifyType.BY_ODOR_Z || cType == ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z
-                || cType == ClassifyType.BY_CORRECT_OdorA_Z || cType == ClassifyType.BY_CORRECT_OdorB_Z) {
-
+                || cType == ClassifyType.BY_CORRECT_OdorA_Z || cType == ClassifyType.BY_CORRECT_OdorB_Z
+                || cType == ClassifyType.BY_OP_SUPPRESS) {
             double[] stats = getBaselineStats(cType, this.trialPool, typeATrialCount + typeBTrialCount);
             meanBaseFR = stats[0];
             stdBaseFR = stats[1];
@@ -139,6 +137,30 @@ public class SingleUnit {
                     if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
                     } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
+            case BY_OP_SUPPRESS:
+                for (Trial trial : this.trialPool) {
+                    typeAPool.add(trial);
+                    typeBPool.add(trial);
+                }
+                break;
+            case BY_SECOND_ODOR:
+                for (Trial trial : this.trialPool) {
+                    if (trial.secondOdorIs(EventType.OdorA) && trial.isCorrect()) {
+                        typeAPool.add(trial);
+                    } else if (trial.secondOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                        typeBPool.add(trial);
+                    }
+                }
+                break;
+            case BY_MATCH:
+                for (Trial trial : this.trialPool) {
+                    if (trial.isMatch() && trial.isCorrect()) {
+                        typeAPool.add(trial);
+                    } else if (trial.isCorrect() && !trial.isMatch()) {
                         typeBPool.add(trial);
                     }
                 }
@@ -305,6 +327,7 @@ public class SingleUnit {
         int trialIdx = 0;
         boolean allZero = true;
         switch (cType) {
+
             case BY_ODOR_Z:
                 for (Trial trial : trialPool) {
 //                    System.out.println(trialPool.size());
@@ -319,6 +342,19 @@ public class SingleUnit {
                         }
                         trialIdx++;
                     }
+                }
+                break;
+            case BY_OP_SUPPRESS:
+                for (Trial trial : trialPool) {
+                    for (Double d : trial.getSpikesList()) {
+                        if (d < 1) {
+                            baselineTSCount[trialIdx]++;
+                            allZero = false;
+                        } else {
+                            break;
+                        }
+                    }
+                    trialIdx++;
                 }
                 break;
 
@@ -342,10 +378,10 @@ public class SingleUnit {
                 for (Trial trial : trialPool) {
                     if (trial.firstOdorIs(EventType.OdorB)) {
                         for (Double d : trial.getSpikesList()) {
-                            if (d < 0) {
+                            if (d >= 1 & d < 2) {
                                 baselineTSCount[trialIdx]++;
                                 allZero = false;
-                            } else {
+                            } else if (d >= 2) {
                                 break;
                             }
                         }
