@@ -14,22 +14,15 @@ import spk2fr.MiceDay;
  *
  * @author Libra
  */
-public class FileParserWJ extends FileParser{
+public class FileParserWJ extends FileParser {
 
     @Override
     public MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
         Arrays.sort(spk, new SpkSorterByTime(true));
-        miceDay.setRecordingLength(spk[spk.length-1][2]-spk[0][2]);
-        for (double[] oneSpk : spk) {
-            if (oneSpk[1] > 0.5) {
-                miceDay.getTetrode((int) Math.round(oneSpk[0]))
-                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk();
-//                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk(oneSpk[2]);
-            }
-        }
-
+        miceDay.setRecordingLength(spk[spk.length - 1][2] - spk[0][2]);
+        
         spkIdx = 0;
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
 
@@ -50,7 +43,7 @@ public class FileParserWJ extends FileParser{
             sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
             EventType[] behaviorTrial = {firstOdor, secondOdor, response};
             behaviorSession.add(behaviorTrial);
-            
+
         }
         behaviorSessions.add(behaviorSession);
         poolTrials(miceDay);

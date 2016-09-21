@@ -18,9 +18,9 @@ public abstract class ProcessorAllFirstOdor extends Processor {
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
         for (Trial trial : trialPool) {
-            if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
+            if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect()) {
                 typeAPool.add(trial);
-            } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
+            } else if (trial.sampleOdorIs(EventType.OdorB) && trial.isCorrect()) {
                 typeBPool.add(trial);
             }
         }

@@ -84,6 +84,9 @@ public class Spk2fr {
             case "opsuppress":
                 fp = new spk2fr.FP.FileParserOpGeneSuppression();
                 break;
+            case "dual":
+                fp = new spk2fr.FP.FileParserDual();
+                break;
             default:
                 System.out.println("Unknown format:[" + data.getFormat() + "] , using default.");
                 fp = new FileParserDNMS();

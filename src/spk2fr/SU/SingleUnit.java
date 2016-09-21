@@ -51,6 +51,10 @@ public class SingleUnit {
         return sessions.get(sessionIdx).get(trialIdx);
     }
 
+    public void setTrial(int sessionIdx, int trialIdx, Trial t) {
+        sessions.get(sessionIdx).put(trialIdx, t);
+    }
+
     public void removeSession(int sessionIdx) {
         sessions.remove(sessionIdx);
     }
@@ -127,10 +131,11 @@ public class SingleUnit {
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> typeAPool = pr.getTypeAPool();
         ArrayList<Trial> typeBPool = pr.getTypeBPool();
-
+        
+        
         double[][] samples = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
-
-        double[] stats = pr.getBaselineStats(this.trialPool, typeATrialCount + typeBTrialCount);
+        
+        double[] stats = pr.getBaselineStats(this.trialPool,totalTrial(miceday));
         double meanBaseFR = stats[0];
         double stdBaseFR = stats[1];
 
@@ -232,6 +237,14 @@ public class SingleUnit {
             }
         }
     }
+    
+    private int totalTrial(spk2fr.MiceDay md){
+        int counter=0;
+        for (ArrayList<EventType[]> session: md.getBehaviorSessions()){
+            counter+=session.size();
+        }
+        return counter;
+    }
 
     double[][] reduceSampleIfNecessary(final int[][] sampleCount, int typeATrialCount, int typeBTrialCount, int repeat) {
         double[][] samples = new double[repeat][];
@@ -300,7 +313,7 @@ public class SingleUnit {
 
         for (Trial trial : trialPool) {
 
-            if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
+            if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect()) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
@@ -310,7 +323,7 @@ public class SingleUnit {
                 firingTSOdorA[trialAIdx] = temp;
                 trialAIdx++;
 
-            } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
+            } else if (trial.sampleOdorIs(EventType.OdorB) && trial.isCorrect()) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
@@ -346,6 +359,16 @@ public class SingleUnit {
                 case "opsuppress":
                     processor = new Processor4OpSuppress();
                     break;
+                case "distrgo":
+                    processor=new ProcessorSamplenDistrZ(EventType.OdorA);
+                    break;
+                case "distrnogo":
+                    processor=new ProcessorSamplenDistrZ(EventType.OdorB);
+                    break;
+                case "distrnone":
+                    processor=new ProcessorSamplenDistrZ(EventType.NONE);
+                    break;
+
                 default:
                     throw new IllegalArgumentException("Unknown Processor Type");
             }

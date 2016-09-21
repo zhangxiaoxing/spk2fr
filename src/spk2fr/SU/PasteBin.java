@@ -29,7 +29,7 @@ public class PasteBin {
 
                 case BY_CORRECT_OdorA_Z:
                     for (Trial trial : trialPool) {
-                        if (trial.firstOdorIs(EventType.OdorA)) {
+                        if (trial.sampleOdorIs(EventType.OdorA)) {
                             for (Double d : trial.getSpikesList()) {
                                 if (d < 0) {
                                     baselineTSCount[trialIdx]++;
@@ -45,7 +45,7 @@ public class PasteBin {
 
                 case BY_CORRECT_OdorB_Z:
                     for (Trial trial : trialPool) {
-                        if (trial.firstOdorIs(EventType.OdorB)) {
+                        if (trial.sampleOdorIs(EventType.OdorB)) {
                             for (Double d : trial.getSpikesList()) {
                                 if (d >= 1 & d < 2) {
                                     baselineTSCount[trialIdx]++;
@@ -98,9 +98,9 @@ public class PasteBin {
             case BY_ODOR_WITHIN_MEAN_TRIAL:
             case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
                 for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
+                    if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                    } else if (trial.sampleOdorIs(EventType.OdorB) && trial.isCorrect()) {
                         typeBPool.add(trial);
                     }
                 }
@@ -108,9 +108,9 @@ public class PasteBin {
 
             case BY_SECOND_ODOR:
                 for (Trial trial : this.trialPool) {
-                    if (trial.secondOdorIs(EventType.OdorA) && trial.isCorrect()) {
+                    if (trial.testOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
-                    } else if (trial.secondOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                    } else if (trial.testOdorIs(EventType.OdorB) && trial.isCorrect()) {
                         typeBPool.add(trial);
                     }
                 }
@@ -127,9 +127,9 @@ public class PasteBin {
             case BY_CORRECT_OdorA:
             case BY_CORRECT_OdorA_Z:
                 for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA) && trial.isCorrect()) {
+                    if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect()) {
                         typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(EventType.OdorA) && !trial.isCorrect()) {
+                    } else if (trial.sampleOdorIs(EventType.OdorA) && !trial.isCorrect()) {
                         typeBPool.add(trial);
                     }
                 }
@@ -137,16 +137,16 @@ public class PasteBin {
             case BY_CORRECT_OdorB:
             case BY_CORRECT_OdorB_Z:
                 for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                    if (trial.sampleOdorIs(EventType.OdorB) && trial.isCorrect()) {
                         typeAPool.add(trial);
-                    } else if (trial.firstOdorIs(EventType.OdorB) && !trial.isCorrect()) {
+                    } else if (trial.sampleOdorIs(EventType.OdorB) && !trial.isCorrect()) {
                         typeBPool.add(trial);
                     }
                 }
                 break;
             case ALL_ODORA:
                 for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorA)) {
+                    if (trial.sampleOdorIs(EventType.OdorA)) {
                         typeAPool.add(trial);
                         typeBPool.add(trial);
                     }
@@ -154,7 +154,7 @@ public class PasteBin {
                 break;
             case ALL_ODORB:
                 for (Trial trial : this.trialPool) {
-                    if (trial.firstOdorIs(EventType.OdorB)) {
+                    if (trial.sampleOdorIs(EventType.OdorB)) {
                         typeAPool.add(trial);
                         typeBPool.add(trial);
                     }

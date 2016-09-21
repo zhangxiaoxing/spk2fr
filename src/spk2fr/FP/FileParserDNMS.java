@@ -22,13 +22,6 @@ public class FileParserDNMS extends FileParser {
         MiceDay miceDay = new MiceDay();
         Arrays.sort(spk, new FileParser.SpkSorterByTime(true));
         miceDay.setRecordingLength(spk[spk.length-1][2]-spk[0][2]);
-        for (double[] oneSpk : spk) {
-            if (oneSpk[1] > 0.5) {
-                miceDay.getTetrode((int) Math.round(oneSpk[0]))
-                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk();
-//                        .getSingleUnit((int) Math.round(oneSpk[1])).addspk(oneSpk[2]);
-            }
-        }
 
         spkIdx = 0;
         double baselineStart = 0;

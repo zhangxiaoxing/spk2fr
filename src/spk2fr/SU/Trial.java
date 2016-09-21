@@ -14,8 +14,8 @@ import spk2fr.EventType;
  */
 public class Trial {
 
-    private EventType firstOdor; // 0 for Q, 1 for R
-    private EventType secondOdor; //^^
+    private EventType sampleOdor; // 0 for Q, 1 for R
+    private EventType testOdor; //^^
     private EventType response;// 0=hit,1=miss;2=cr,3=false;
     private boolean isSet = false;
     ArrayList<Double> spks = new ArrayList<>();
@@ -31,26 +31,25 @@ public class Trial {
         return isSet;
     }
 
-    public void setTrialParameter(EventType firstOdor, EventType secondOdor, EventType response, double trialLength) {
+    public void setTrialParameter(EventType sampleOdor, EventType testOdor, EventType response, double trialLength) {
         this.trialLength = trialLength;
-        if ((firstOdor != EventType.OdorA && firstOdor != EventType.OdorB)
-                || (secondOdor != EventType.OdorA && secondOdor != EventType.OdorB)) {
+        if ((sampleOdor != EventType.OdorA && sampleOdor != EventType.OdorB)
+                || (testOdor != EventType.OdorA && testOdor != EventType.OdorB)) {
             System.out.println("Error Trial Parameter");
         }
-        this.firstOdor = firstOdor;
-        this.secondOdor = secondOdor;
-
+        this.sampleOdor = sampleOdor;
+        this.testOdor = testOdor;
         this.response = response;
 
         isSet = true;
     }
 
-    public boolean firstOdorIs(EventType odor) {
-        return this.firstOdor == odor;
+    public boolean sampleOdorIs(EventType odor) {
+        return this.sampleOdor == odor;
     }
 
-    public boolean secondOdorIs(EventType odor) {
-        return this.secondOdor == odor;
+    public boolean testOdorIs(EventType odor) {
+        return this.testOdor == odor;
     }
 
 //    4 removal  
@@ -70,6 +69,6 @@ public class Trial {
     }
     
     public boolean isMatch(){
-        return firstOdor==secondOdor;
+        return sampleOdor==testOdor;
     }
 }

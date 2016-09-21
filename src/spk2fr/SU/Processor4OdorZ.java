@@ -21,17 +21,17 @@ public class Processor4OdorZ extends ProcessorAllFirstOdor {
         boolean allZero = true;
 
         for (Trial trial : trialPool) {
-            if (trial.isCorrect()) {
-                for (Double d : trial.getSpikesList()) {
-                    if (d < 0) {
-                        baselineTSCount[trialIdx]++;
-                        allZero = false;
-                    } else {
-                        break;
-                    }
+//            if (trial.isCorrect()) {
+            for (Double d : trial.getSpikesList()) {
+                if (d < 0) {
+                    baselineTSCount[trialIdx]++;
+                    allZero = false;
+                } else {
+                    break;
                 }
-                trialIdx++;
             }
+            trialIdx++;
+//            }
         }
 
         if (allZero) {

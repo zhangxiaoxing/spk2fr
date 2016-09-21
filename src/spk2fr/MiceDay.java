@@ -19,11 +19,10 @@ public class MiceDay {
     private ArrayList<ArrayList<EventType[]>> behaviorSessions; //EventType[] behaviorTrial = {firstOdor, secondOdor, response};
     private double recordingLength;
 
-    
     public MiceDay() {
         tetrodes = new HashMap<>();
     }
-    
+
     public void setRecordingLength(double recordingLength) {
         this.recordingLength = recordingLength;
     }
@@ -32,21 +31,14 @@ public class MiceDay {
         ArrayList<Boolean> results = new ArrayList<>();
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] evt : session) {
-                if (evt[2] == EventType.Hit || evt[2] == EventType.CorrectRejection) {
-                    results.add(Boolean.TRUE);
-                } else {
-                    results.add(Boolean.FALSE);
-                }
-
+                results.add(evt[2] == EventType.Hit || evt[2] == EventType.CorrectRejection);
                 int sumTrial = results.size();
                 if (sumTrial >= 40) {
                     int count = 0;
                     for (int i = sumTrial - 1; i > sumTrial - 40; i--) {
-                        if (results.get(i)) {
-                            count++;
-                            if (count > 31) {
-                                return true;
-                            }
+                        count += results.get(i) ? 1 : 0;
+                        if (count > 31) {
+                            return true;
                         }
                     }
                 }
@@ -129,7 +121,7 @@ public class MiceDay {
         for (Tetrode t : this.getTetrodes()) {
             t.removeSparseFiringUnits(leastFR,
                     this.countByCorrect(EventType.OdorA)[0] + this.countByCorrect(EventType.OdorA)[1]
-                    + this.countByCorrect(EventType.OdorB)[0] + this.countByCorrect(EventType.OdorB)[1], refracRatio,recordingLength);
+                    + this.countByCorrect(EventType.OdorB)[0] + this.countByCorrect(EventType.OdorB)[1], refracRatio, recordingLength);
         }
         return this;
     }
