@@ -21,7 +21,7 @@ public class Processor4OpSuppress extends Processor {
         boolean allZero = true;
         for (Trial trial : trialPool) {
             for (Double d : trial.getSpikesList()) {
-                if (d < 1) {
+                if (d < 0) {
                     baselineTSCount[trialIdx]++;
                     allZero = false;
                 } else {

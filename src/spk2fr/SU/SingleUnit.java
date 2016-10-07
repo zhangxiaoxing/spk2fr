@@ -359,14 +359,17 @@ public class SingleUnit {
                 case "opsuppress":
                     processor = new Processor4OpSuppress();
                     break;
+                case "distrgoz":
                 case "distrgo":
-                    processor=new ProcessorSamplenDistrZ(EventType.OdorA);
+                    processor=new ProcessorSamplenDistrZ(EventType.OdorA,type.toLowerCase().endsWith("z"));
                     break;
+                case "distrnogoz":
                 case "distrnogo":
-                    processor=new ProcessorSamplenDistrZ(EventType.OdorB);
+                    processor=new ProcessorSamplenDistrZ(EventType.OdorB,type.toLowerCase().endsWith("z"));
                     break;
+                case "distrnonez":
                 case "distrnone":
-                    processor=new ProcessorSamplenDistrZ(EventType.NONE);
+                    processor=new ProcessorSamplenDistrZ(EventType.NONE,type.toLowerCase().endsWith("z"));
                     break;
 
                 default:

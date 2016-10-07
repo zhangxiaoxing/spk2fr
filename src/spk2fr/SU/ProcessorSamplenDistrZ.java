@@ -15,13 +15,17 @@ import spk2fr.MiceDay;
  */
 public class ProcessorSamplenDistrZ extends Processor {
 
-    private EventType distr;
+    final private EventType distr;
+    final private boolean Z;
 
     public ProcessorSamplenDistrZ() {
+        this.distr = EventType.NONE;
+        this.Z = true;
     }
 
-    public ProcessorSamplenDistrZ(EventType distr) {
+    public ProcessorSamplenDistrZ(EventType distr, boolean Z) {
         this.distr = distr;
+        this.Z = Z;
     }
 
     @Override
@@ -63,8 +67,12 @@ public class ProcessorSamplenDistrZ extends Processor {
 
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
-        Processor4OdorZ pr = new Processor4OdorZ();
-        return pr.getBaselineStats(trialPool, totalTrialCount);
+        if (this.Z) {
+            Processor4OdorZ pr = new Processor4OdorZ();
+            return pr.getBaselineStats(trialPool, totalTrialCount);
+        } else {
+            return new double[]{0, 1};
+        }
     }
 
 }
