@@ -26,7 +26,7 @@ public class FileParserOpGeneSuppression extends spk2fr.FP.FileParser {
         spkIdx = 0;
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
         for (double[] ts : evts) {
-            sortSpikes(spk, miceDay, ts[0] - 3, ts[0] + 15, EventType.OdorA, EventType.OdorA, EventType.Hit, 0, behaviorSession.size());
+            sortSpikes(spk, miceDay, ts[0] - 1, ts[0] + 15, EventType.OdorA, EventType.OdorA, EventType.Hit, 0, behaviorSession.size());
             behaviorSession.add(new EventType[]{EventType.OdorA, EventType.OdorA, EventType.Hit});
         }
         behaviorSessions.add(behaviorSession);
