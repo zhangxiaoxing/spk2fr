@@ -6,6 +6,7 @@
 package spk2fr.SU;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import spk2fr.ClassifyType;
@@ -125,108 +126,90 @@ public class SingleUnit {
     public double[][] getSampleFR(spk2fr.MiceDay miceday, String type, float[] bin, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
         Processor pr = new GetType(type).getProcessor();
+
         int typeATrialCount = pr.getTypeATrialNum(miceday);
         int typeBTrialCount = pr.getTypeBTrialNum(miceday);
 
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> typeAPool = pr.getTypeAPool();
         ArrayList<Trial> typeBPool = pr.getTypeBPool();
-        
-        
-        double[][] samples = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
-        
-        double[] stats = pr.getBaselineStats(this.trialPool,totalTrial(miceday));
+        sampleCount = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
+        double[][] samples = new double[repeatCount][];
+
+        double[] stats = pr.getBaselineStats(this.trialPool, totalTrial(miceday));
         double meanBaseFR = stats[0];
         double stdBaseFR = stats[1];
-
         RandomDataGenerator rng = new RandomDataGenerator();
         for (int repeat = 0; repeat < repeatCount; repeat++) {
-
-            int[] aPerm = rng.nextPermutation(typeATrialCount, sampleCount[0][0] + sampleCount[0][1]);
-            int[] bPerm = rng.nextPermutation(typeBTrialCount, sampleCount[1][0] + sampleCount[1][1]);
-
-            ArrayList<Double> psthTypeA1 = new ArrayList<>();//Time Stamp
-            ArrayList<Double> psthTypeA2 = new ArrayList<>();//Time Stamp
-            ArrayList<Double> psthTypeB1 = new ArrayList<>();//Time Stamp
-            ArrayList<Double> psthTypeB2 = new ArrayList<>();//Time Stamp
-
-            for (int i = 0; i < sampleCount[0][0]; i++) {
-                if (aPerm[i] < typeAPool.size()) {
-                    psthTypeA1.addAll(typeAPool.get(aPerm[i]).getSpikesList());
-                }
-            }
-            for (int i = sampleCount[0][0]; i < sampleCount[0][0] + sampleCount[0][1]; i++) {
-                if (aPerm[i] < typeAPool.size()) {
-                    psthTypeA2.addAll(typeAPool.get(aPerm[i]).getSpikesList());
-                }
-            }
-
-            for (int i = 0; i < sampleCount[1][0]; i++) {
-                if (bPerm[i] < typeBPool.size()) {
-                    psthTypeB1.addAll(typeBPool.get(bPerm[i]).getSpikesList());
-                }
-            }
-
-            for (int i = sampleCount[1][0]; i < sampleCount[1][0] + sampleCount[1][1]; i++) {
-                if (bPerm[i] < typeBPool.size()) {
-                    psthTypeB2.addAll(typeBPool.get(bPerm[i]).getSpikesList());
-                }
-            }
+//            System.out.println("RPT" + repeat);
+            int[] aPerm = rng.nextPermutation(typeATrialCount, sumSampleCount(sampleCount, 0));
+            int[] bPerm = rng.nextPermutation(typeBTrialCount, sumSampleCount(sampleCount, 1));
+//            System.out.println("SPCT" + Arrays.deepToString(sampleCount));
+//            System.out.println("APERM" + Arrays.toString(aPerm));
+            ArrayList<ArrayList<Double>> psthA = genPSTH(sampleCount, 0, aPerm, typeAPool);
+            ArrayList<ArrayList<Double>> psthB = genPSTH(sampleCount, 1, bPerm, typeBPool);
 
             float binStart = bin[0];
             float binSize = bin[1];
             float binEnd = bin[2];
 
             int binCount = Math.round((binEnd - binStart) / binSize);
-            int[] binedPSTHA1 = new int[binCount];//time stamp
-            int[] binedPSTHA2 = new int[binCount];//time stamp
-            int[] binedPSTHB1 = new int[binCount];//time stamp
-            int[] binedPSTHB2 = new int[binCount];//time stamp
+            ArrayList<int[]> binnedA = genBinned(psthA, binCount, binStart, binSize);
+            ArrayList<int[]> binnedB = genBinned(psthB, binCount, binStart, binSize);
 
-            for (Double d : psthTypeA1) {
-                if ((int) ((d - binStart) / binSize) < binCount) {
-                    binedPSTHA1[(int) ((d - binStart) / binSize)]++;
+            double[] normalized = new double[binCount * (binnedA.size() + binnedB.size())];
+//            System.out.println("NORINIT");
+            for (int i = 0; i < binnedA.size(); i++) {
+                for (int j = 0; j < binnedA.get(i).length; j++) {
+                    normalized[j + i * binCount] = (((double) binnedA.get(i)[j] / sampleCount[0][i] / binSize) - meanBaseFR) / stdBaseFR;
                 }
             }
-
-            for (Double d : psthTypeA2) {
-                if ((int) ((d - binStart) / binSize) < binCount) {
-                    binedPSTHA2[(int) ((d - binStart) / binSize)]++;
+            for (int i = 0; i < binnedB.size(); i++) {
+                for (int j = 0; j < binnedB.get(i).length; j++) {
+                    normalized[j + (i + binnedA.size()) * binCount] = (((double) binnedB.get(i)[j] / sampleCount[1][i] / binSize) - meanBaseFR) / stdBaseFR;
                 }
             }
-
-            for (Double d : psthTypeB1) {
-                if ((int) ((d - binStart) / binSize) < binCount) {
-                    binedPSTHB1[(int) ((d - binStart) / binSize)]++;
-                }
-            }
-            for (Double d : psthTypeB2) {
-                if ((int) ((d - binStart) / binSize) < binCount) {
-                    binedPSTHB2[(int) ((d - binStart) / binSize)]++;
-                }
-            }
-
-            double[] normalized = new double[binCount * 4];
-
-            for (int i = 0; i < binedPSTHA1.length; i++) {
-                normalized[i] = (((double) binedPSTHA1[i] / sampleCount[0][0] / binSize) - meanBaseFR) / stdBaseFR;
-            }
-
-            for (int i = 0; i < binedPSTHA2.length; i++) {
-                normalized[i + binCount] = (((double) binedPSTHA2[i] / sampleCount[0][1] / binSize) - meanBaseFR) / stdBaseFR;
-            }
-
-            for (int i = 0; i < binedPSTHB1.length; i++) {
-                normalized[i + binCount * 2] = (((double) binedPSTHB1[i] / sampleCount[1][0] * (1 / binSize)) - meanBaseFR) / stdBaseFR;
-            }
-
-            for (int i = 0; i < binedPSTHB2.length; i++) {
-                normalized[i + binCount * 3] = (((double) binedPSTHB2[i] / sampleCount[1][1] * (1 / binSize)) - meanBaseFR) / stdBaseFR;
-            }
-
+//            System.out.println("NORM" + Arrays.toString(normalized));
             samples[repeat] = normalized;
         }
         return samples;
+    }
+
+    ArrayList<ArrayList<Double>> genPSTH(final int[][] sampleCount, final int grp, final int[] perm, final ArrayList<Trial> trialPool) {
+        ArrayList<ArrayList<Double>> psth = new ArrayList<>();
+//        System.out.println("PERM" + Arrays.toString(perm));
+        int currSampCount = 0;
+        for (int i = 0; i < sampleCount[grp].length; i++) {
+            ArrayList<Double> oneSample = new ArrayList<>();
+            for (int j = currSampCount; j < currSampCount + sampleCount[grp][i]; j++) {
+//                System.out.println("J" + j);
+//                System.out.println("PERMJ" + perm[j]);
+                if (perm[j] < trialPool.size()) {
+                    oneSample.addAll(trialPool.get(perm[j]).getSpikesList());
+                }
+            }
+            currSampCount += sampleCount[grp][i];
+            psth.add(oneSample);
+        }
+//        System.out.println("PSTHE" + psth.size());
+        return psth;
+    }
+
+    ArrayList<int[]> genBinned(ArrayList<ArrayList<Double>> psth, int binCount, float binStart, float binSize) {
+        ArrayList<int[]> binned = new ArrayList<>();
+        for (int i = 0; i < psth.size(); i++) {
+            int[] binnedSample = new int[binCount];
+            for (Double d : psth.get(i)) {
+//                System.out.println("d"+d);
+//                System.out.println("BS"+binStart);
+                
+               if ((int) ((d - binStart) / binSize) < binCount) {
+                    binnedSample[(int) ((d - binStart) / binSize)]++;
+                }
+            }
+            binned.add(binnedSample);
+        }
+        return binned;
     }
 
     public void poolTrials() {
@@ -237,40 +220,46 @@ public class SingleUnit {
             }
         }
     }
-    
-    private int totalTrial(spk2fr.MiceDay md){
-        int counter=0;
-        for (ArrayList<EventType[]> session: md.getBehaviorSessions()){
-            counter+=session.size();
+
+    private int totalTrial(spk2fr.MiceDay md) {
+        int counter = 0;
+        for (ArrayList<EventType[]> session : md.getBehaviorSessions()) {
+            counter += session.size();
         }
         return counter;
     }
 
-    double[][] reduceSampleIfNecessary(final int[][] sampleCount, int typeATrialCount, int typeBTrialCount, int repeat) {
-        double[][] samples = new double[repeat][];
-        if (sampleCount[0][0] + sampleCount[0][1] > typeATrialCount) {
-            if (sampleCount[0][1] < 2) {
-                sampleCount[0][0] = typeATrialCount - sampleCount[0][1];
-            } else {
-                sampleCount[0][0] = typeATrialCount / 2;
-                sampleCount[0][1] = typeATrialCount / 2;
-            }
+    int sumSampleCount(int[][] samples, int grp) {
+        int count = 0;
+        for (int oneGrp : samples[grp]) {
+            count += oneGrp;
         }
-        if (sampleCount[1][0] + sampleCount[1][1] > typeBTrialCount) {
-            if (sampleCount[1][1] < 2) {
-                sampleCount[1][0] = typeBTrialCount - sampleCount[1][1];
-            } else {
-                sampleCount[1][0] = typeBTrialCount / 2;
-                sampleCount[1][1] = typeBTrialCount / 2;
+        return count;
+    }
+
+    int[][] reduceSampleIfNecessary(final int[][] sampleCount, int typeATrialCount, int typeBTrialCount, int repeat) {
+//        double[][] samples = new double[repeat][];
+        for (int j = 0; j < 2; j++) {
+            int requiredCount = sumSampleCount(sampleCount, j);
+            int typeTrialCount = j == 0 ? typeATrialCount : typeBTrialCount;
+            if (requiredCount > typeTrialCount) {
+                if (sampleCount[j].length < 3 && sampleCount[j][1] < 2) {//Decoding
+                    sampleCount[j][0] = typeTrialCount - sampleCount[j][1];
+                } else {
+                    sampleCount[j][0] = typeTrialCount;
+                    for (int i = sampleCount[j].length - 1; i > 0; i--) {
+                        sampleCount[j][i] = sampleCount[j][i] * typeTrialCount / requiredCount;
+                        sampleCount[j][0] -= sampleCount[j][i];
+                    }
+                }
+                if (sampleCount[j][0] < 1) {
+                    System.out.println("Not Enough Trial!");
+                    return null;
+                }
             }
         }
 
-        if (sampleCount[0][0] < 1 || sampleCount[1][0] < 1) {
-//            System.out.print(sampleCount[0][0]+", "+sampleCount[0][1]+", "+sampleCount[1][0]+", "+sampleCount[1][1]+", ");
-            System.out.println("Not Enough Trial!");
-            return null;
-        }
-        return samples;
+        return sampleCount;
     }
 
 //    /*
@@ -361,15 +350,15 @@ public class SingleUnit {
                     break;
                 case "distrgoz":
                 case "distrgo":
-                    processor=new ProcessorSamplenDistrZ(EventType.OdorA,type.toLowerCase().endsWith("z"));
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, type.toLowerCase().endsWith("z"));
                     break;
                 case "distrnogoz":
                 case "distrnogo":
-                    processor=new ProcessorSamplenDistrZ(EventType.OdorB,type.toLowerCase().endsWith("z"));
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, type.toLowerCase().endsWith("z"));
                     break;
                 case "distrnonez":
                 case "distrnone":
-                    processor=new ProcessorSamplenDistrZ(EventType.NONE,type.toLowerCase().endsWith("z"));
+                    processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"));
                     break;
 
                 default:

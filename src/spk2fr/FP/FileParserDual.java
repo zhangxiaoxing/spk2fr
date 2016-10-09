@@ -71,19 +71,23 @@ public class FileParserDual extends FileParser {
     }
 
     private double[][] removeMissingTrials(double[][] evts) {
-        int threshold = 12;
+        int threshold = 10;
         for (int i = 0; i < evts.length - threshold; i++) {
             int counter = 0;
             for (int missingCount = i; missingCount < i + threshold; missingCount++) {
                 counter += evts[missingCount][6] == 0 ? 1 : 0;
             }
-            if (counter == threshold && i > 0) {
-                System.out.println("Removing trials with much missing.");
-                double[][] removed = new double[i][];
-                for (int j = 0; j < i; j++) {
-                    removed[j] = evts[j];
+            if (counter == threshold) {
+//                System.out.println("Removing trials with much missing.");
+                if (i > 15) {
+                    double[][] removed = new double[i][];
+                    for (int j = 0; j < i; j++) {
+                        removed[j] = evts[j];
+                    }
+                    return removed;
+                }else{
+                    return new double[0][0];
                 }
-                return removed;
             }
         }
         return evts;
