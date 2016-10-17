@@ -8,7 +8,6 @@ package spk2fr;
 import com.jmatio.io.MatFileReader;
 import com.jmatio.types.MLArray;
 import com.jmatio.types.MLDouble;
-import java.util.ArrayList;
 
 /**
  *

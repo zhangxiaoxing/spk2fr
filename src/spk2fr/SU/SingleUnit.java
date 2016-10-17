@@ -134,6 +134,9 @@ public class SingleUnit {
         ArrayList<Trial> typeAPool = pr.getTypeAPool();
         ArrayList<Trial> typeBPool = pr.getTypeBPool();
         sampleCount = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
+        if (null == sampleCount || typeATrialCount < 1 || typeBTrialCount < 1) {
+            return null;
+        }
         double[][] samples = new double[repeatCount][];
 
         double[] stats = pr.getBaselineStats(this.trialPool, totalTrial(miceday));
@@ -202,8 +205,8 @@ public class SingleUnit {
             for (Double d : psth.get(i)) {
 //                System.out.println("d"+d);
 //                System.out.println("BS"+binStart);
-                
-               if ((int) ((d - binStart) / binSize) < binCount) {
+
+                if ((int) ((d - binStart) / binSize) < binCount) {
                     binnedSample[(int) ((d - binStart) / binSize)]++;
                 }
             }

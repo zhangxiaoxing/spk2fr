@@ -114,7 +114,7 @@ public class Spk2fr {
         for (Tetrode tetrode : miceDay.getTetrodes()) {
             for (SingleUnit unit : tetrode.getUnits()) {
                 double[][] rtn = unit.getSampleFR(miceDay, type, bin, sampleSize, repeats);
-                if (null != rtn) {
+                if (null != rtn && rtn.length > 0) {
                     frs.add(rtn);
                 }
             }
