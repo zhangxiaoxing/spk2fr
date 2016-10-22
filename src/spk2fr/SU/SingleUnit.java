@@ -363,8 +363,12 @@ public class SingleUnit {
                 case "distrnone":
                     processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"));
                     break;
-
+                case "match":
+                case "matchincincorr":
+                    processor=new ProcessorMatch(type.toLowerCase().endsWith("incorr"));
+                    break;
                 default:
+                    System.out.println(type);
                     throw new IllegalArgumentException("Unknown Processor Type");
             }
         }

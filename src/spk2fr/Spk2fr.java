@@ -57,24 +57,25 @@ public class Spk2fr {
     /*
      For temporary check only
      */
-//    public double[][][][] getTS(String type) {
-//        if (miceDay == null
-//                || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained())) {
-//            return null;
-//        }
-//
-////        int[] params = getTrialNum(type);
-////        ClassifyType cType = ClassifyType.values()[params[0]];
-////        int typeATrials = params[1];
-////        int typeBTrials = params[2];
-//        ArrayList<double[][][]> TS = new ArrayList<>();
-//        for (Tetrode tetrode : miceDay.getTetrodes()) {
-//            for (SingleUnit unit : tetrode.getUnits()) {
-//                TS.add(unit.getTrialTS(miceDay.countCorrectTrialByOdor(0, EventType.OdorA), miceDay.countCorrectTrialByOdor(0, EventType.OdorB)));
-//            }
-//        }
-//        return TS.toArray(new double[TS.size()][][][]);
-//    }
+    public double[][][][] getTS(double[][] evts, double[][] spk, String type) {
+        MiceDay miceDay=parseEvts(buildData(evts, spk, type));
+        if (miceDay == null
+                || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained())) {
+            return null;
+        }
+
+//        int[] params = getTrialNum(type);
+//        ClassifyType cType = ClassifyType.values()[params[0]];
+//        int typeATrials = params[1];
+//        int typeBTrials = params[2];
+        ArrayList<double[][][]> TS = new ArrayList<>();
+        for (Tetrode tetrode : miceDay.getTetrodes()) {
+            for (SingleUnit unit : tetrode.getUnits()) {
+                TS.add(unit.getTrialTS(miceDay.countCorrectTrialByOdor(0, EventType.OdorA), miceDay.countCorrectTrialByOdor(0, EventType.OdorB)));
+            }
+        }
+        return TS.toArray(new double[TS.size()][][][]);
+    }
     MiceDay parseEvts(Data data) {
         FileParser fp;
         switch (data.getFormat().toLowerCase()) {
