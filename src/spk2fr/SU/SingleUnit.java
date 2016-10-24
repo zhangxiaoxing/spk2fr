@@ -349,7 +349,8 @@ public class SingleUnit {
                     processor = new Processor4OdorZ();
                     break;
                 case "opsuppress":
-                    processor = new Processor4OpSuppress();
+                case "opsuppressz":
+                    processor = new Processor4OpSuppress(type.toLowerCase().endsWith("z"));
                     break;
                 case "distrgoz":
                 case "distrgo":
@@ -365,7 +366,7 @@ public class SingleUnit {
                     break;
                 case "match":
                 case "matchincincorr":
-                    processor=new ProcessorMatch(type.toLowerCase().endsWith("incorr"));
+                    processor = new ProcessorMatch(type.toLowerCase().endsWith("incorr"));
                     break;
                 default:
                     System.out.println(type);

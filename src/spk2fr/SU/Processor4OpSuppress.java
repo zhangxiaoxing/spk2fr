@@ -14,14 +14,24 @@ import spk2fr.MiceDay;
  */
 public class Processor4OpSuppress extends Processor {
 
+    final boolean z;
+
+    public Processor4OpSuppress(boolean z) {
+        this.z = z;
+    }
+
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
+        if (!z) {
+            return new double[]{0, 1};
+        }
+
         double[] baselineTSCount = new double[totalTrialCount];
         int trialIdx = 0;
         boolean allZero = true;
         for (Trial trial : trialPool) {
             for (Double d : trial.getSpikesList()) {
-                if (d < 0) {
+                if (d < 0 && d>=-1) {
                     baselineTSCount[trialIdx]++;
                     allZero = false;
                 } else {
@@ -54,6 +64,4 @@ public class Processor4OpSuppress extends Processor {
         return md.getBehaviorSessions().get(0).size();
     }
 
-    
-    
 }
