@@ -58,9 +58,10 @@ public class Spk2fr {
      For temporary check only
      */
     public double[][][][] getTS(double[][] evts, double[][] spk, String type) {
-        MiceDay miceDay=parseEvts(buildData(evts, spk, type));
-        if (miceDay == null
-                || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained())) {
+//        System.out.println("V001");
+        MiceDay miceDay = parseEvts(buildData(evts, spk, type));
+        if (miceDay.getTetrodes().size() < 1
+               /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */ ) {
             return null;
         }
 
@@ -76,6 +77,7 @@ public class Spk2fr {
         }
         return TS.toArray(new double[TS.size()][][][]);
     }
+
     MiceDay parseEvts(Data data) {
         FileParser fp;
         switch (data.getFormat().toLowerCase()) {
@@ -94,7 +96,6 @@ public class Spk2fr {
         }
 
         MiceDay miceDay = fp.processFile(data.getEvts(), data.getSpk()).removeSparseFiringUnits(leastFR, refracRatio);
-
         return miceDay;
     }
 
@@ -108,7 +109,8 @@ public class Spk2fr {
 
     public double[][][] getSampleFringRate(Data data, String type, float[] bin, int[][] sampleSize, int repeats) {
         MiceDay miceDay = parseEvts(data);
-        if ((wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
+        if (miceDay.getTetrodes().size() < 1
+                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
             return null;
         }
         ArrayList<double[][]> frs = new ArrayList<>();
@@ -179,7 +181,10 @@ public class Spk2fr {
             leastFR = ClassifyType.BY_PEAK2Hz;
         } else if (type.equalsIgnoreCase("Peak2HzWhole")) {
             leastFR = ClassifyType.BY_PEAK2Hz_WHOLETRIAL;
-        } else {
+        }else if (type.equalsIgnoreCase("all")){
+            leastFR=ClassifyType.ALL;
+        }
+        else {
             System.out.println("Wrong Least FR type, using Average 2Hz");
         }
 

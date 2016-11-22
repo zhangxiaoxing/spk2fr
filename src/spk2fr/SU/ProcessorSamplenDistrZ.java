@@ -17,23 +17,26 @@ public class ProcessorSamplenDistrZ extends Processor {
 
     final private EventType distr;
     final private boolean Z;
+    final private boolean incIncorr;
 
     public ProcessorSamplenDistrZ() {
         this.distr = EventType.NONE;
         this.Z = true;
+        this.incIncorr=false;
     }
 
-    public ProcessorSamplenDistrZ(EventType distr, boolean Z) {
+    public ProcessorSamplenDistrZ(EventType distr, boolean Z,boolean incIncorr) {
         this.distr = distr;
         this.Z = Z;
+        this.incIncorr=incIncorr;
     }
 
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
         for (Trial trial : trialPool) {
-            if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect() && ((DualTrial) trial).getDistrOdor() == distr) {
+            if (trial.sampleOdorIs(EventType.OdorA) && (incIncorr || trial.isCorrect()) && ((DualTrial) trial).getDistrOdor() == distr) {
                 typeAPool.add(trial);
-            } else if (trial.sampleOdorIs(EventType.OdorB) && trial.isCorrect() && ((DualTrial) trial).getDistrOdor() == distr) {
+            } else if (trial.sampleOdorIs(EventType.OdorB) && (incIncorr || trial.isCorrect()) && ((DualTrial) trial).getDistrOdor() == distr) {
                 typeBPool.add(trial);
             }
         }

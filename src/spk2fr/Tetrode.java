@@ -37,7 +37,7 @@ public class Tetrode {
     public void removeSparseFiringUnits(ClassifyType type, int trialCount,double refracRatio, double recordingLength) {
         HashMap<Integer, SingleUnit> selectedUnits = new HashMap<>();
         for (Integer key : singleUnits.keySet()) {
-            if (!singleUnits.get(key).isSparseFiring(type, trialCount,refracRatio,recordingLength)) {
+            if (type==ClassifyType.ALL || (!singleUnits.get(key).isSparseFiring(type, trialCount,refracRatio,recordingLength))) {
                 selectedUnits.put(key, singleUnits.get(key));
             }
         }

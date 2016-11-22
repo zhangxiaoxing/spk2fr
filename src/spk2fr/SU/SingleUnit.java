@@ -173,6 +173,7 @@ public class SingleUnit {
                 }
             }
 //            System.out.println("NORM" + Arrays.toString(normalized));
+            normalized[normalized.length - 1] = getPerf(sampleCount, aPerm, bPerm, typeAPool, typeBPool);
             samples[repeat] = normalized;
         }
         return samples;
@@ -196,6 +197,29 @@ public class SingleUnit {
         }
 //        System.out.println("PSTHE" + psth.size());
         return psth;
+    }
+
+    float getPerf(final int[][] sampleCount, final int[] aPerm, final int[] bPerm, final ArrayList<Trial> aPool, final ArrayList<Trial> bPool) {
+        if (sampleCount[0][1] < 1) {
+            return 0;
+        }
+        float correctCount = 0;
+        float totalCount = 0;
+        for (int j = sampleCount[0][0]; j < sampleCount[0][0] + sampleCount[0][1]; j++) {
+            if (aPerm[j] < aPool.size()) {
+                totalCount++;
+                correctCount += aPool.get(aPerm[j]).isCorrect() ? 1 : 0;
+            }
+        }
+
+        for (int j = sampleCount[1][0]; j < sampleCount[1][0] + sampleCount[1][1]; j++) {
+            if (bPerm[j] < bPool.size()) {
+                totalCount++;
+                correctCount += bPool.get(bPerm[j]).isCorrect() ? 1 : 0;
+            }
+        }
+        System.out.println("");
+        return correctCount / totalCount;
     }
 
     ArrayList<int[]> genBinned(ArrayList<ArrayList<Double>> psth, int binCount, float binStart, float binSize) {
@@ -261,7 +285,7 @@ public class SingleUnit {
                 }
             }
         }
-
+//        System.out.println(Arrays.deepToString(sampleCount));
         return sampleCount;
     }
 
@@ -296,7 +320,6 @@ public class SingleUnit {
      For temporary check only
      */
     public double[][][] getTrialTS(int odorATrialCount, int odorBTrialCount) {
-
         double[][] firingTSOdorA = new double[odorATrialCount][];//Time Stamp
         double[][] firingTSOdorB = new double[odorBTrialCount][];//Time Stamp
 
@@ -354,15 +377,18 @@ public class SingleUnit {
                     break;
                 case "distrgoz":
                 case "distrgo":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, type.toLowerCase().endsWith("z"));
+                case "distrgoincincorr":
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, type.toLowerCase().endsWith("z"),type.toLowerCase().endsWith("incorr"));
                     break;
                 case "distrnogoz":
                 case "distrnogo":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, type.toLowerCase().endsWith("z"));
+                case "distrnogoincincorr":
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, type.toLowerCase().endsWith("z"),type.toLowerCase().endsWith("incorr"));
                     break;
                 case "distrnonez":
                 case "distrnone":
-                    processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"));
+                case "distrnoneincincorr":
+                    processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"),type.toLowerCase().endsWith("incorr"));
                     break;
                 case "match":
                 case "matchincincorr":

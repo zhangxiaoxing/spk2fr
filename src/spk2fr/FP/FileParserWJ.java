@@ -20,9 +20,12 @@ public class FileParserWJ extends FileParser {
     public MiceDay processFile(double[][] evts, double[][] spk) {
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
+        if (spk.length < 1000 || evts.length < 10) {
+            return miceDay;
+        }
         Arrays.sort(spk, new SpkSorterByTime(true));
         miceDay.setRecordingLength(spk[spk.length - 1][2] - spk[0][2]);
-        
+
         spkIdx = 0;
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
 

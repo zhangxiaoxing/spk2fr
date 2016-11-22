@@ -31,7 +31,6 @@ public class FileParserDual extends FileParser {
         int sessionIdx = 0;
         double[][] rEvts = removeMissingTrials(evts);
         for (double[] evtDouble : rEvts) {
-
             EventType sampleOdor = evtDouble[0] < 1.5 ? EventType.OdorA : EventType.OdorB;
             EventType testOdor = evtDouble[4] < 1.5 ? EventType.OdorA : EventType.OdorB;
             EventType distrOdor = getDistrOdor(evtDouble[2]);
