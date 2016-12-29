@@ -46,7 +46,7 @@ public class Para {
 
     synchronized public Future<double[][][]> parGetSampleFR(String evtFile, String spkFile,
             String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-
+//        System.out.println("parS2FR");
         return pool.submit(new ParSpk2fr(evtFile, spkFile, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 

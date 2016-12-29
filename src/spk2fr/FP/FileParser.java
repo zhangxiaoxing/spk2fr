@@ -18,6 +18,8 @@ import spk2fr.Tetrode;
  */
 public abstract class FileParser {
 
+    public static final int baseBias = 0;
+
     public abstract MiceDay processFile(double[][] evts, double[][] spk);
 
     protected int spkIdx = 0;
@@ -47,13 +49,13 @@ public abstract class FileParser {
             if (spk[spkIdx][1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(spk[spkIdx][0]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();
-                if (spk[spkIdx][2] > baselineStart) {
+                if (spk[spkIdx][2] > baselineStart - FileParser.baseBias) {
                     Trial currentTrial = miceDay.getTetrode((int) (spk[spkIdx][0] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
                             .getTrial(sessionIdx, trialIdx);
 
                     if (!currentTrial.isSet()) {
-                        currentTrial.setTrialParameter(firstOdor, secondOdor, response, secondOdorEnd - baselineStart);
+                        currentTrial.setTrialParameter(firstOdor, secondOdor, response, secondOdorEnd - baselineStart + FileParser.baseBias);
                     }
                     currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;
 //                System.out.println("spks "+currentTrial.getSpikesList().size());

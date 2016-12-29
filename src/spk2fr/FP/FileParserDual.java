@@ -5,6 +5,7 @@
  */
 package spk2fr.FP;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import spk2fr.EventType;
@@ -84,7 +85,7 @@ public class FileParserDual extends FileParser {
                         removed[j] = evts[j];
                     }
                     return removed;
-                }else{
+                } else {
                     return new double[0][0];
                 }
             }
@@ -97,7 +98,7 @@ public class FileParserDual extends FileParser {
             if (spk[spkIdx][1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(spk[spkIdx][3]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();
-                if (spk[spkIdx][2] > baselineStart) {
+                if (spk[spkIdx][2] > baselineStart - FileParser.baseBias) {
                     Trial currentTrial = miceDay.getTetrode((int) (spk[spkIdx][3] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
                             .getTrial(sessionIdx, trialIdx);
@@ -109,7 +110,7 @@ public class FileParserDual extends FileParser {
                     }
 
                     if (!currentTrial.isSet()) {
-                        currentTrial.setTrialParameter(sampleOdor, testOdor, response, secondOdorEnd - baselineStart);
+                        currentTrial.setTrialParameter(sampleOdor, testOdor, response, secondOdorEnd - baselineStart + FileParser.baseBias);
                         ((DualTrial) currentTrial).setDistrOdor(distrOdor);
                     }
                     currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;

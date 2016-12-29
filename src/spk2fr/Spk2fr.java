@@ -22,6 +22,7 @@ public class Spk2fr {
     protected int wellTrainOnly = 0;//0=not well-trained; 1=well-trained; 2=include all;
     protected ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
     protected double refracRatio = 0.0015;
+    private ArrayList<int[]> keyIdx;
 
     /**
      * @param args the command line arguments
@@ -60,8 +61,7 @@ public class Spk2fr {
     public double[][][][] getTS(double[][] evts, double[][] spk, String type) {
 //        System.out.println("V001");
         MiceDay miceDay = parseEvts(buildData(evts, spk, type));
-        if (miceDay.getTetrodes().size() < 1
-               /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */ ) {
+        if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
             return null;
         }
 
@@ -70,12 +70,20 @@ public class Spk2fr {
 //        int typeATrials = params[1];
 //        int typeBTrials = params[2];
         ArrayList<double[][][]> TS = new ArrayList<>();
-        for (Tetrode tetrode : miceDay.getTetrodes()) {
-            for (SingleUnit unit : tetrode.getUnits()) {
+        keyIdx = new ArrayList<>();
+        for (Integer tetKey : miceDay.getTetrodeKeys()) {
+            Tetrode tetrode = miceDay.getTetrode(tetKey);
+            for (Integer unitKey : tetrode.getUnitKeys()) {
+                SingleUnit unit = tetrode.getSingleUnit(unitKey);
+                keyIdx.add(new int[]{tetKey, unitKey});
                 TS.add(unit.getTrialTS(miceDay.countCorrectTrialByOdor(0, EventType.OdorA), miceDay.countCorrectTrialByOdor(0, EventType.OdorB)));
             }
         }
         return TS.toArray(new double[TS.size()][][][]);
+    }
+
+    public int[][] getKeyIdx() {
+        return keyIdx.toArray(new int[keyIdx.size()][]);
     }
 
     MiceDay parseEvts(Data data) {
@@ -114,10 +122,15 @@ public class Spk2fr {
             return null;
         }
         ArrayList<double[][]> frs = new ArrayList<>();
-        for (Tetrode tetrode : miceDay.getTetrodes()) {
-            for (SingleUnit unit : tetrode.getUnits()) {
+        keyIdx = new ArrayList<>();
+        for (Integer tetKey : miceDay.getTetrodeKeys()) {
+            Tetrode tetrode = miceDay.getTetrode(tetKey);
+            for (Integer unitKey : tetrode.getUnitKeys()) {
+                SingleUnit unit = tetrode.getSingleUnit(unitKey);
+
                 double[][] rtn = unit.getSampleFR(miceDay, type, bin, sampleSize, repeats);
                 if (null != rtn && rtn.length > 0) {
+                    keyIdx.add(new int[]{tetKey, unitKey});
                     frs.add(rtn);
                 }
             }
@@ -181,10 +194,9 @@ public class Spk2fr {
             leastFR = ClassifyType.BY_PEAK2Hz;
         } else if (type.equalsIgnoreCase("Peak2HzWhole")) {
             leastFR = ClassifyType.BY_PEAK2Hz_WHOLETRIAL;
-        }else if (type.equalsIgnoreCase("all")){
-            leastFR=ClassifyType.ALL;
-        }
-        else {
+        } else if (type.equalsIgnoreCase("all")) {
+            leastFR = ClassifyType.ALL;
+        } else {
             System.out.println("Wrong Least FR type, using Average 2Hz");
         }
 

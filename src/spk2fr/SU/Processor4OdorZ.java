@@ -23,9 +23,11 @@ public class Processor4OdorZ extends ProcessorAllFirstOdor {
         for (Trial trial : trialPool) {
 //            if (trial.isCorrect()) {
             for (Double d : trial.getSpikesList()) {
-                if (d < 0) {
-                    baselineTSCount[trialIdx]++;
-                    allZero = false;
+                if (d < 0d) {
+                    if (d >= -1) {
+                        baselineTSCount[trialIdx]++;
+                        allZero = false;
+                    }
                 } else {
                     break;
                 }

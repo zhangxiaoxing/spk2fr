@@ -155,10 +155,13 @@ public class SingleUnit {
             float binStart = bin[0];
             float binSize = bin[1];
             float binEnd = bin[2];
-
+            
+//            System.out.println("inFR");
+            
             int binCount = Math.round((binEnd - binStart) / binSize);
             ArrayList<int[]> binnedA = genBinned(psthA, binCount, binStart, binSize);
             ArrayList<int[]> binnedB = genBinned(psthB, binCount, binStart, binSize);
+//            System.out.println("" + binStart + ", " + binCount + ", " + binSize);
 
             double[] normalized = new double[binCount * (binnedA.size() + binnedB.size())];
 //            System.out.println("NORINIT");
@@ -218,7 +221,7 @@ public class SingleUnit {
                 correctCount += bPool.get(bPerm[j]).isCorrect() ? 1 : 0;
             }
         }
-        System.out.println("");
+//        System.out.println("");
         return correctCount / totalCount;
     }
 
@@ -229,9 +232,10 @@ public class SingleUnit {
             for (Double d : psth.get(i)) {
 //                System.out.println("d"+d);
 //                System.out.println("BS"+binStart);
-
-                if ((int) ((d - binStart) / binSize) < binCount) {
-                    binnedSample[(int) ((d - binStart) / binSize)]++;
+                int binIdx = (int) ((d - binStart) / binSize);
+//                System.out.println(binIdx);
+                if (binIdx >= 0 && binIdx < binCount) {
+                    binnedSample[binIdx]++;
                 }
             }
             binned.add(binnedSample);
@@ -378,17 +382,17 @@ public class SingleUnit {
                 case "distrgoz":
                 case "distrgo":
                 case "distrgoincincorr":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, type.toLowerCase().endsWith("z"),type.toLowerCase().endsWith("incorr"));
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, type.toLowerCase().endsWith("z"), type.toLowerCase().endsWith("incorr"));
                     break;
                 case "distrnogoz":
                 case "distrnogo":
                 case "distrnogoincincorr":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, type.toLowerCase().endsWith("z"),type.toLowerCase().endsWith("incorr"));
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, type.toLowerCase().endsWith("z"), type.toLowerCase().endsWith("incorr"));
                     break;
                 case "distrnonez":
                 case "distrnone":
                 case "distrnoneincincorr":
-                    processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"),type.toLowerCase().endsWith("incorr"));
+                    processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"), type.toLowerCase().endsWith("incorr"));
                     break;
                 case "match":
                 case "matchincincorr":

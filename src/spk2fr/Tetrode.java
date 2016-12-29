@@ -47,4 +47,8 @@ public class Tetrode {
     public Collection<SingleUnit> getUnits() {
         return singleUnits.values();
     }
+    
+    public Collection<Integer> getUnitKeys() {
+        return singleUnits.keySet();
+    }
 }

@@ -58,6 +58,10 @@ public class MiceDay {
     public Collection<Tetrode> getTetrodes() {
         return tetrodes.values();
     }
+    
+    public Collection<Integer> getTetrodeKeys() {
+        return tetrodes.keySet();
+    }
 
 //    public void removeSession(int sessionIdx) {
 //        for (Tetrode tetrode : tetrodes.values()) {
