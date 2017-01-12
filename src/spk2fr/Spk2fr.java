@@ -59,7 +59,6 @@ public class Spk2fr {
      For temporary check only
      */
     public double[][][][] getTS(double[][] evts, double[][] spk, String type) {
-//        System.out.println("V001");
         MiceDay miceDay = parseEvts(buildData(evts, spk, type));
         if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
             return null;
@@ -98,6 +97,9 @@ public class Spk2fr {
             case "dual":
                 fp = new spk2fr.FP.FileParserDual();
                 break;
+            case "dnms":
+                fp = new FileParserDNMS();
+                break;
             default:
                 System.out.println("Unknown format:[" + data.getFormat() + "] , using default.");
                 fp = new FileParserDNMS();
@@ -129,6 +131,28 @@ public class Spk2fr {
                 SingleUnit unit = tetrode.getSingleUnit(unitKey);
 
                 double[][] rtn = unit.getSampleFR(miceDay, type, bin, sampleSize, repeats);
+                if (null != rtn && rtn.length > 0) {
+                    keyIdx.add(new int[]{tetKey, unitKey});
+                    frs.add(rtn);
+                }
+            }
+        }
+        return frs.toArray(new double[frs.size()][][]);
+    }
+
+    public double[][][] getAllFringRate(Data data, String type, float[] bin, boolean isS1) {
+        MiceDay miceDay = parseEvts(data);
+        if (miceDay.getTetrodes().size() < 1
+                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
+            return null;
+        }
+        ArrayList<double[][]> frs = new ArrayList<>();
+        keyIdx = new ArrayList<>();
+        for (Integer tetKey : miceDay.getTetrodeKeys()) {
+            Tetrode tetrode = miceDay.getTetrode(tetKey);
+            for (Integer unitKey : tetrode.getUnitKeys()) {
+                SingleUnit unit = tetrode.getSingleUnit(unitKey);
+                double[][] rtn = unit.getAllFR(miceDay, type, bin, isS1);
                 if (null != rtn && rtn.length > 0) {
                     keyIdx.add(new int[]{tetKey, unitKey});
                     frs.add(rtn);

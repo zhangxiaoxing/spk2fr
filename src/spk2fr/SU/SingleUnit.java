@@ -143,54 +143,67 @@ public class SingleUnit {
         double meanBaseFR = stats[0];
         double stdBaseFR = stats[1];
         RandomDataGenerator rng = new RandomDataGenerator();
+
+        float binStart = bin[0];
+        float binSize = bin[1];
+        float binEnd = bin[2];
+        float unitFR = 1f / binSize;
+
         for (int repeat = 0; repeat < repeatCount; repeat++) {
-//            System.out.println("RPT" + repeat);
             int[] aPerm = rng.nextPermutation(typeATrialCount, sumSampleCount(sampleCount, 0));
             int[] bPerm = rng.nextPermutation(typeBTrialCount, sumSampleCount(sampleCount, 1));
-//            System.out.println("SPCT" + Arrays.deepToString(sampleCount));
-//            System.out.println("APERM" + Arrays.toString(aPerm));
             ArrayList<ArrayList<Double>> psthA = genPSTH(sampleCount, 0, aPerm, typeAPool);
             ArrayList<ArrayList<Double>> psthB = genPSTH(sampleCount, 1, bPerm, typeBPool);
 
-            float binStart = bin[0];
-            float binSize = bin[1];
-            float binEnd = bin[2];
-            
-//            System.out.println("inFR");
-            
             int binCount = Math.round((binEnd - binStart) / binSize);
-            ArrayList<int[]> binnedA = genBinned(psthA, binCount, binStart, binSize);
-            ArrayList<int[]> binnedB = genBinned(psthB, binCount, binStart, binSize);
-//            System.out.println("" + binStart + ", " + binCount + ", " + binSize);
+            ArrayList<double[]> binnedA = genBinned(psthA, binCount, binStart, binSize, unitFR);
+            ArrayList<double[]> binnedB = genBinned(psthB, binCount, binStart, binSize, unitFR);
 
             double[] normalized = new double[binCount * (binnedA.size() + binnedB.size())];
-//            System.out.println("NORINIT");
             for (int i = 0; i < binnedA.size(); i++) {
                 for (int j = 0; j < binnedA.get(i).length; j++) {
-                    normalized[j + i * binCount] = (((double) binnedA.get(i)[j] / sampleCount[0][i] / binSize) - meanBaseFR) / stdBaseFR;
+                    normalized[j + i * binCount] = ((binnedA.get(i)[j] / sampleCount[0][i]) - meanBaseFR) / stdBaseFR;
                 }
             }
             for (int i = 0; i < binnedB.size(); i++) {
                 for (int j = 0; j < binnedB.get(i).length; j++) {
-                    normalized[j + (i + binnedA.size()) * binCount] = (((double) binnedB.get(i)[j] / sampleCount[1][i] / binSize) - meanBaseFR) / stdBaseFR;
+                    normalized[j + (i + binnedA.size()) * binCount] = ((binnedB.get(i)[j] / sampleCount[1][i]) - meanBaseFR) / stdBaseFR;
                 }
             }
-//            System.out.println("NORM" + Arrays.toString(normalized));
             normalized[normalized.length - 1] = getPerf(sampleCount, aPerm, bPerm, typeAPool, typeBPool);
             samples[repeat] = normalized;
         }
         return samples;
     }
 
+    public double[][] getAllFR(spk2fr.MiceDay miceday, String type, float[] bin, boolean isS1) {  //firing rate, baseline assumed to be 1s
+
+        Processor pr = new GetType(type).getProcessor();
+
+        pr.fillPoolsByType(this.trialPool);
+        ArrayList<Trial> pool = isS1 ? pr.getTypeAPool() : pr.getTypeBPool();
+
+        ArrayList<ArrayList<Double>> rasters = new ArrayList<>();
+        for (Trial t : pool) {
+            rasters.add(t.getSpikesList());
+        }
+
+        float binStart = bin[0];
+        float binSize = bin[1];
+        float binEnd = bin[2];
+        float unitFR = 1 / binSize;
+
+        int binCount = Math.round((binEnd - binStart) / binSize);
+        ArrayList<double[]> binned = genBinned(rasters, binCount, binStart, binSize, unitFR);
+        return binned.toArray(new double[binned.size()][]);
+    }
+
     ArrayList<ArrayList<Double>> genPSTH(final int[][] sampleCount, final int grp, final int[] perm, final ArrayList<Trial> trialPool) {
         ArrayList<ArrayList<Double>> psth = new ArrayList<>();
-//        System.out.println("PERM" + Arrays.toString(perm));
         int currSampCount = 0;
         for (int i = 0; i < sampleCount[grp].length; i++) {
             ArrayList<Double> oneSample = new ArrayList<>();
             for (int j = currSampCount; j < currSampCount + sampleCount[grp][i]; j++) {
-//                System.out.println("J" + j);
-//                System.out.println("PERMJ" + perm[j]);
                 if (perm[j] < trialPool.size()) {
                     oneSample.addAll(trialPool.get(perm[j]).getSpikesList());
                 }
@@ -198,7 +211,6 @@ public class SingleUnit {
             currSampCount += sampleCount[grp][i];
             psth.add(oneSample);
         }
-//        System.out.println("PSTHE" + psth.size());
         return psth;
     }
 
@@ -221,21 +233,17 @@ public class SingleUnit {
                 correctCount += bPool.get(bPerm[j]).isCorrect() ? 1 : 0;
             }
         }
-//        System.out.println("");
         return correctCount / totalCount;
     }
 
-    ArrayList<int[]> genBinned(ArrayList<ArrayList<Double>> psth, int binCount, float binStart, float binSize) {
-        ArrayList<int[]> binned = new ArrayList<>();
-        for (int i = 0; i < psth.size(); i++) {
-            int[] binnedSample = new int[binCount];
-            for (Double d : psth.get(i)) {
-//                System.out.println("d"+d);
-//                System.out.println("BS"+binStart);
+    ArrayList<double[]> genBinned(ArrayList<ArrayList<Double>> psth, int binCount, float binStart, float binSize, float unitFR) {
+        ArrayList<double[]> binned = new ArrayList<>();
+        for (ArrayList<Double> oneSample : psth) {
+            double[] binnedSample = new double[binCount];
+            for (Double d : oneSample) {
                 int binIdx = (int) ((d - binStart) / binSize);
-//                System.out.println(binIdx);
                 if (binIdx >= 0 && binIdx < binCount) {
-                    binnedSample[binIdx]++;
+                    binnedSample[binIdx] += unitFR;
                 }
             }
             binned.add(binnedSample);
@@ -289,7 +297,6 @@ public class SingleUnit {
                 }
             }
         }
-//        System.out.println(Arrays.deepToString(sampleCount));
         return sampleCount;
     }
 
@@ -370,10 +377,15 @@ public class SingleUnit {
 //            int[] counts;
             switch (type.toLowerCase()) {
                 case "odor":
+                case "sample":
                     processor = new Processor4Odor();
                     break;
                 case "odorz":
+                case "samplez":
                     processor = new Processor4OdorZ();
+                    break;
+                case "test":
+                    processor = new ProcessorTestOdor();
                     break;
                 case "opsuppress":
                 case "opsuppressz":
@@ -399,7 +411,7 @@ public class SingleUnit {
                     processor = new ProcessorMatch(type.toLowerCase().endsWith("incorr"));
                     break;
                 default:
-                    System.out.println(type);
+                    System.out.println(type+": Unknown Processor Type");
                     throw new IllegalArgumentException("Unknown Processor Type");
             }
         }

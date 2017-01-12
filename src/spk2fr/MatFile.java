@@ -19,10 +19,8 @@ public class MatFile {
 
         //read array form file
         try {
-//            System.out.println("before 0");
             MatFileReader mfr = new MatFileReader(fileName);
             MLArray mlArrayRetrived = mfr.getMLArray(dataName);
-//            System.out.println("before 1");
             return ((MLDouble) mlArrayRetrived).getArray();
         } catch (Exception ioe) {
             System.out.println(fileName + ", " + dataName + ", " + ioe.toString());

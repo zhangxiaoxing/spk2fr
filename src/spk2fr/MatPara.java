@@ -43,10 +43,15 @@ public class MatPara {
         return pool.submit(new ParSpk2fr(evt, spk, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 
-    synchronized public Future<double[][][]> parGetSampleFR(String  trialF, 
+    synchronized public Future<double[][][]> parGetSampleFR(String trialF,
             String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
 
         return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
+    }
+
+    synchronized public Future<double[][][]> parGetAllFR(String trialF,
+            String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {
+        return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, isS1));
     }
 
     public void setFormat(String format) {
@@ -64,8 +69,9 @@ public class MatPara {
         final float binEnd;
         final int[][] sampleSize;
         final int repeats;
-        String trialF="";
-        
+        boolean isS1;
+        String trialF = "";
+
         public ParSpk2fr(double[][] evt, double[][] spk,
                 String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
             this.evt = evt;
@@ -77,31 +83,57 @@ public class MatPara {
             this.binEnd = binEnd;
             this.sampleSize = sampleSize;
             this.repeats = repeats;
-            
+
         }
 
         public ParSpk2fr(String trialF,
                 String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-            this(new double[0][0], new double[0][0], classify, type, binStart, binSize, binEnd, sampleSize, repeats);
-            this.trialF=trialF;
+            this(null, null, classify, type, binStart, binSize, binEnd, sampleSize, repeats);
+            this.trialF = trialF;
+        }
+
+        public ParSpk2fr(String trialF,
+                String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {
+
+            this.classify = classify;
+            this.type = type;
+            this.binStart = binStart;
+            this.binSize = binSize;
+            this.binEnd = binEnd;
+            this.sampleSize = null;
+            this.repeats = 0;
+            this.isS1 = isS1;
+            this.trialF = trialF;
         }
 
         @Override
         public double[][][] call() {
-            if (this.trialF.length()>5){
-                spk=MatFile.getFile(trialF, "SPK");
-                evt=MatFile.getFile(trialF, "EVT");
+            if (this.trialF.length() > 5) {
+                if (format.startsWith("dual") || format.startsWith("op")) {
+                    spk = MatFile.getFile(trialF, "SPK");
+                    evt = MatFile.getFile(trialF, "EVT");
+                } else {
+                    spk = MatFile.getFile(trialF, "Spk");
+                    evt = MatFile.getFile(trialF, "TrialInfo");
+                }
             }
-//            System.out.println("SPK "+spk.length+"x"+spk[0].length);
-//            System.out.println("EVT "+evt.length+"x"+evt[0].length);
-            
+            if(spk.length<100 || evt.length<20){
+                System.out.println("Error Parsing File "+trialF);
+                return new double[0][0][0];
+            }
+
             Spk2fr s2f = new Spk2fr();
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(classify);
-            
+
+            if (format.toLowerCase().endsWith("allfr")) {
+                return s2f.getAllFringRate(s2f.buildData(evt, spk, format.substring(0, format.length() - 5)),
+                        type, s2f.setBin(binStart, binSize, binEnd), isS1);
+            }
             return s2f.getSampleFringRate(s2f.buildData(evt, spk, format),
                     type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
+
         }
 
     }

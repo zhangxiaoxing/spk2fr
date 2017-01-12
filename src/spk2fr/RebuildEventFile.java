@@ -81,11 +81,9 @@ public class RebuildEventFile {
         RebuildEventFile.Trial currTrial = new Trial();
 
         for (double[] row : evts) {
-//            System.out.println(row[0] + ", " + row[1]);
 
             switch ((int) Math.round(row[0])) {
                 case 0:
-//                    System.out.println(o2+", "+response+", "+(row[1]-o2Time));
                     if (currTrial.lickReady(delay)) {
                         if (currTrial.tryLick(row[1])) {
                             trials.add(currTrial);

@@ -21,7 +21,6 @@ public class PasteBin {
         if (cType == ClassifyType.BY_ODOR_WITHIN_MEAN_TRIAL_Z
                 || cType == ClassifyType.BY_CORRECT_OdorA_Z || cType == ClassifyType.BY_CORRECT_OdorB_Z) {
 
-//        System.out.println(totalTrialCount);
             double[] baselineTSCount = new double[totalTrialCount];
             int trialIdx = 0;
             boolean allZero = true;
@@ -62,7 +61,6 @@ public class PasteBin {
                 case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
                     int[] tsbins = new int[10];
                     for (Trial trial : trialPool) {
-//                    System.out.println(trialPool.size());
                         if (trial.isCorrect()) {
                             for (Double d : trial.getSpikesList()) {
                                 if (d < 0 && d > -1) {

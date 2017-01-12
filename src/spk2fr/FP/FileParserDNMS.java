@@ -66,7 +66,6 @@ public class FileParserDNMS extends FileParser {
                     if (firstOdor != EventType.unknown && secondOdor != EventType.unknown) {
 //                        double trialDelay = secondOdorEnd - baselineStart - 3;
 //                        if (trialDelay > 4.8 && trialDelay < 5.2) {
-//                            System.out.println("length " + (secondOdorEnd - baselineStart));
                         sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, firstOdor, secondOdor, response, sessionIdx, behaviorSession.size());
                         EventType[] behaviorTrial = {firstOdor, secondOdor, response};
                         behaviorSession.add(behaviorTrial);

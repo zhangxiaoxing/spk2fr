@@ -58,7 +58,7 @@ public class MiceDay {
     public Collection<Tetrode> getTetrodes() {
         return tetrodes.values();
     }
-    
+
     public Collection<Integer> getTetrodeKeys() {
         return tetrodes.keySet();
     }
@@ -81,6 +81,8 @@ public class MiceDay {
         }
         return count;
     }
+
+
 
     public int countCorrectTrialByMatch(EventType isMatch, boolean correct) {
         int count = 0;

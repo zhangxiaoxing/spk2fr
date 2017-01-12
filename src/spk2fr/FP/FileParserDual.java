@@ -48,6 +48,7 @@ public class FileParserDual extends FileParser {
             sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, sampleOdor, testOdor, response, sessionIdx, behaviorSession.size(), distrOdor);
             EventType[] behaviorTrial = {sampleOdor, testOdor, response, distrOdor};
             behaviorSession.add(behaviorTrial);
+            
 
         }
 
@@ -78,7 +79,6 @@ public class FileParserDual extends FileParser {
                 counter += evts[missingCount][6] == 0 ? 1 : 0;
             }
             if (counter == threshold) {
-//                System.out.println("Removing trials with much missing.");
                 if (i > 15) {
                     double[][] removed = new double[i][];
                     for (int j = 0; j < i; j++) {
@@ -114,7 +114,6 @@ public class FileParserDual extends FileParser {
                         ((DualTrial) currentTrial).setDistrOdor(distrOdor);
                     }
                     currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;
-//                System.out.println("spks "+currentTrial.getSpikesList().size());
                 }
             }
             spkIdx++;

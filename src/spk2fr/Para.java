@@ -46,7 +46,6 @@ public class Para {
 
     synchronized public Future<double[][][]> parGetSampleFR(String evtFile, String spkFile,
             String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
-//        System.out.println("parS2FR");
         return pool.submit(new ParSpk2fr(evtFile, spkFile, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 
@@ -81,6 +80,8 @@ public class Para {
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(classify);
+            
+            
             if (format.toLowerCase().equals("wj")) {
                 return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "TrialInfo"), MatFile.getFile(spkFile, "Spk"), format),
                         type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
