@@ -117,7 +117,7 @@ public class Spk2fr {
         return new Data(evts, spk, format);
     }
 
-    public double[][][] getSampleFringRate(Data data, String type, float[] bin, int[][] sampleSize, int repeats) {
+    public ComboReturnType getSampleFringRate(Data data, String type, float[] bin, int[][] sampleSize, int repeats) {
         MiceDay miceDay = parseEvts(data);
         if (miceDay.getTetrodes().size() < 1
                 || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
@@ -133,14 +133,15 @@ public class Spk2fr {
                 double[][] rtn = unit.getSampleFR(miceDay, type, bin, sampleSize, repeats);
                 if (null != rtn && rtn.length > 0) {
                     keyIdx.add(new int[]{tetKey, unitKey});
+//                    System.out.println("keyIdx, " + tetKey + ", " + unitKey);
                     frs.add(rtn);
                 }
             }
         }
-        return frs.toArray(new double[frs.size()][][]);
+        return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx());
     }
 
-    public double[][][] getAllFringRate(Data data, String type, float[] bin, boolean isS1) {
+    public ComboReturnType getAllFringRate(Data data, String type, float[] bin, boolean isS1) {
         MiceDay miceDay = parseEvts(data);
         if (miceDay.getTetrodes().size() < 1
                 || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
@@ -155,11 +156,12 @@ public class Spk2fr {
                 double[][] rtn = unit.getAllFR(miceDay, type, bin, isS1);
                 if (null != rtn && rtn.length > 0) {
                     keyIdx.add(new int[]{tetKey, unitKey});
+//                    System.out.println("keyIdx, " + tetKey + ", " + unitKey);
                     frs.add(rtn);
                 }
             }
         }
-        return frs.toArray(new double[frs.size()][][]);
+        return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx());
     }
 
 //    public int getTrialCountByFirstOdor(int odor) {

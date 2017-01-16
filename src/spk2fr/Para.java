@@ -44,12 +44,12 @@ public class Para {
         this.format = format;
     }
 
-    synchronized public Future<double[][][]> parGetSampleFR(String evtFile, String spkFile,
+    synchronized public Future<ComboReturnType> parGetSampleFR(String evtFile, String spkFile,
             String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
         return pool.submit(new ParSpk2fr(evtFile, spkFile, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 
-    class ParSpk2fr implements Callable<double[][][]> {
+    class ParSpk2fr implements Callable<ComboReturnType> {
 
         final String evtFile;
         final String spkFile;
@@ -75,7 +75,7 @@ public class Para {
         }
 
         @Override
-        public double[][][] call() throws Exception {
+        public ComboReturnType call() throws Exception {
             Spk2fr s2f = new Spk2fr();
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);

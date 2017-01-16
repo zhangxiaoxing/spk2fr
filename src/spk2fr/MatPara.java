@@ -37,19 +37,19 @@ public class MatPara {
         this.refracRatio = refracRatio;
     }
 
-    synchronized public Future<double[][][]> parGetSampleFR(double[][] evt, double[][] spk,
+    synchronized public Future<ComboReturnType> parGetSampleFR(double[][] evt, double[][] spk,
             String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
 
         return pool.submit(new ParSpk2fr(evt, spk, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 
-    synchronized public Future<double[][][]> parGetSampleFR(String trialF,
+    synchronized public Future<ComboReturnType> parGetSampleFR(String trialF,
             String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
 
         return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 
-    synchronized public Future<double[][][]> parGetAllFR(String trialF,
+    synchronized public Future<ComboReturnType> parGetAllFR(String trialF,
             String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {
         return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, isS1));
     }
@@ -58,7 +58,7 @@ public class MatPara {
         this.format = format;
     }
 
-    class ParSpk2fr implements Callable<double[][][]> {
+    class ParSpk2fr implements Callable<ComboReturnType> {
 
         double[][] evt;
         double[][] spk;
@@ -107,7 +107,7 @@ public class MatPara {
         }
 
         @Override
-        public double[][][] call() {
+        public ComboReturnType call() {
             if (this.trialF.length() > 5) {
                 if (format.startsWith("dual") || format.startsWith("op")) {
                     spk = MatFile.getFile(trialF, "SPK");
@@ -119,7 +119,7 @@ public class MatPara {
             }
             if(spk.length<100 || evt.length<20){
                 System.out.println("Error Parsing File "+trialF);
-                return new double[0][0][0];
+                return new ComboReturnType(new double[0][0][0],new int[0][0]);
             }
 
             Spk2fr s2f = new Spk2fr();
