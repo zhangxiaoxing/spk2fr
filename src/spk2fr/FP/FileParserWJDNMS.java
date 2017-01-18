@@ -14,7 +14,7 @@ import spk2fr.MiceDay;
  *
  * @author Libra
  */
-public class FileParserWJ extends FileParser {
+public class FileParserWJDNMS extends FileParser {
 
     @Override
     public MiceDay processFile(double[][] evts, double[][] spk) {

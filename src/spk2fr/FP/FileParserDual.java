@@ -5,7 +5,6 @@
  */
 package spk2fr.FP;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import spk2fr.EventType;
@@ -48,7 +47,6 @@ public class FileParserDual extends FileParser {
             sortSpikes(spk, miceDay, baselineStart, secondOdorEnd, sampleOdor, testOdor, response, sessionIdx, behaviorSession.size(), distrOdor);
             EventType[] behaviorTrial = {sampleOdor, testOdor, response, distrOdor};
             behaviorSession.add(behaviorTrial);
-            
 
         }
 
@@ -93,12 +91,12 @@ public class FileParserDual extends FileParser {
         return evts;
     }
 
-    private void sortSpikes(double[][] spk, MiceDay miceDay, double baselineStart, double secondOdorEnd, EventType sampleOdor, EventType testOdor, EventType response, int sessionIdx, int trialIdx, EventType distrOdor) {
-        while (spkIdx < spk.length && spk[spkIdx][2] < secondOdorEnd) {
+    private void sortSpikes(double[][] spk, MiceDay miceDay, double baseOnset, double testOffset, EventType sample, EventType test, EventType response, int sessionIdx, int trialIdx, EventType distrOdor) {
+        while (spkIdx < spk.length && spk[spkIdx][2] < testOffset+FileParser.rewardBias) {
             if (spk[spkIdx][1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(spk[spkIdx][3]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();
-                if (spk[spkIdx][2] > baselineStart - FileParser.baseBias) {
+                if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
                     Trial currentTrial = miceDay.getTetrode((int) (spk[spkIdx][3] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
                             .getTrial(sessionIdx, trialIdx);
@@ -110,10 +108,10 @@ public class FileParserDual extends FileParser {
                     }
 
                     if (!currentTrial.isSet()) {
-                        currentTrial.setTrialParameter(sampleOdor, testOdor, response, secondOdorEnd - baselineStart + FileParser.baseBias);
+                        currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
                         ((DualTrial) currentTrial).setDistrOdor(distrOdor);
                     }
-                    currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;
+                    currentTrial.addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }
             spkIdx++;

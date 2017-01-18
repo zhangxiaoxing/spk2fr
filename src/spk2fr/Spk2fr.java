@@ -7,7 +7,7 @@ package spk2fr;
 
 import spk2fr.FP.FileParser;
 import spk2fr.FP.FileParserDNMS;
-import spk2fr.FP.FileParserWJ;
+import spk2fr.FP.FileParserWJDNMS;
 import java.io.File;
 import java.util.ArrayList;
 import spk2fr.SU.SingleUnit;
@@ -58,7 +58,7 @@ public class Spk2fr {
     /*
      For temporary check only
      */
-    public double[][][][] getTS(double[][] evts, double[][] spk, String type) {
+    public double[][][][] getTS(double[][] evts, double[][] spk, String type, boolean byMatch) {
         MiceDay miceDay = parseEvts(buildData(evts, spk, type));
         if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
             return null;
@@ -75,7 +75,9 @@ public class Spk2fr {
             for (Integer unitKey : tetrode.getUnitKeys()) {
                 SingleUnit unit = tetrode.getSingleUnit(unitKey);
                 keyIdx.add(new int[]{tetKey, unitKey});
-                TS.add(unit.getTrialTS(miceDay.countCorrectTrialByOdor(0, EventType.OdorA), miceDay.countCorrectTrialByOdor(0, EventType.OdorB)));
+                int a_trailNum = byMatch ? miceDay.countCorrectTrialByMatch(EventType.NONMATCH, true) : miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
+                int b_trailNum = byMatch ? miceDay.countCorrectTrialByMatch(EventType.MATCH, true) : miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
+                TS.add(unit.getTrialTS(a_trailNum, b_trailNum, byMatch));
             }
         }
         return TS.toArray(new double[TS.size()][][][]);
@@ -89,8 +91,10 @@ public class Spk2fr {
         FileParser fp;
         switch (data.getFormat().toLowerCase()) {
             case "wj":
-                fp = new FileParserWJ();
+            case "wjdnms":
+                fp = new FileParserWJDNMS();
                 break;
+
             case "opsuppress":
                 fp = new spk2fr.FP.FileParserOpGeneSuppression();
                 break;
@@ -141,7 +145,7 @@ public class Spk2fr {
         return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx());
     }
 
-    public ComboReturnType getAllFringRate(Data data, String type, float[] bin, boolean isS1) {
+    public ComboReturnType getAllFiringRate(Data data, String type, float[] bin, boolean isS1) {
         MiceDay miceDay = parseEvts(data);
         if (miceDay.getTetrodes().size() < 1
                 || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {

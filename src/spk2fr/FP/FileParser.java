@@ -45,20 +45,20 @@ public abstract class FileParser {
         }
     }
 
-    protected void sortSpikes(double[][] spk, MiceDay miceDay, double baselineStart, double secondOdorEnd, EventType firstOdor, EventType secondOdor, EventType response, int sessionIdx, int trialIdx) {
-        while (spkIdx < spk.length && spk[spkIdx][2] < secondOdorEnd + FileParser.rewardBias) {
+    protected void sortSpikes(double[][] spk, MiceDay miceDay, double baseOnset, double testOffset, EventType sample, EventType test, EventType response, int sessionIdx, int trialIdx) {
+        while (spkIdx < spk.length && spk[spkIdx][2] < testOffset + FileParser.rewardBias) {
             if (spk[spkIdx][1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(spk[spkIdx][0]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();
-                if (spk[spkIdx][2] > baselineStart - FileParser.baseBias) {
+                if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
                     Trial currentTrial = miceDay.getTetrode((int) (spk[spkIdx][0] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
                             .getTrial(sessionIdx, trialIdx);
 
                     if (!currentTrial.isSet()) {
-                        currentTrial.setTrialParameter(firstOdor, secondOdor, response, secondOdorEnd - baselineStart + FileParser.baseBias + FileParser.rewardBias);
+                        currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
                     }
-                    currentTrial.addSpk(spk[spkIdx][2] - baselineStart - 1);//Odor1 Start at 0;
+                    currentTrial.addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }
             spkIdx++;

@@ -330,39 +330,42 @@ public class SingleUnit {
     /*
      For temporary check only
      */
-    public double[][][] getTrialTS(int odorATrialCount, int odorBTrialCount) {
-        double[][] firingTSOdorA = new double[odorATrialCount][];//Time Stamp
-        double[][] firingTSOdorB = new double[odorBTrialCount][];//Time Stamp
+    public double[][][] getTrialTS(int a_TrialCount, int b_TrialCount, boolean byMatch) {
+        double[][] firingTSA = new double[a_TrialCount][];//Time Stamp
+        double[][] firingTSB = new double[b_TrialCount][];//Time Stamp
 
         int trialAIdx = 0;
         int trialBIdx = 0;
 
         for (Trial trial : trialPool) {
-
-            if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect()) {
+            if (trial.isCorrect()
+                    && ((byMatch && !trial.isMatch())
+                    || (trial.sampleOdorIs(EventType.OdorA) && !byMatch))) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
                     temp[idx] = d;
                     idx++;
                 }
-                firingTSOdorA[trialAIdx] = temp;
+                firingTSA[trialAIdx] = temp;
                 trialAIdx++;
 
-            } else if (trial.sampleOdorIs(EventType.OdorB) && trial.isCorrect()) {
+            } else if (trial.isCorrect()
+                    && ((byMatch && trial.isMatch())
+                    || (trial.sampleOdorIs(EventType.OdorB) && !byMatch))) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
                     temp[idx] = d;
                     idx++;
                 }
-                firingTSOdorB[trialBIdx] = temp;
+                firingTSB[trialBIdx] = temp;
                 trialBIdx++;
             }
         }
 //        Collections.sort(firingTS);
 
-        return new double[][][]{firingTSOdorA, firingTSOdorB};
+        return new double[][][]{firingTSA, firingTSB};
     }
 
     class GetType {
@@ -408,10 +411,13 @@ public class SingleUnit {
                     break;
                 case "match":
                 case "matchincincorr":
-                    processor = new ProcessorMatch(type.toLowerCase().endsWith("incorr"));
+                case "matchz":
+                case "matcherrorz":
+                case "matcherror":
+                    processor = new ProcessorMatch(type.toLowerCase().contains("incorr"), type.toLowerCase().endsWith("z"),type.toLowerCase().contains("error"));
                     break;
                 default:
-                    System.out.println(type+": Unknown Processor Type");
+                    System.out.println(type + ": Unknown Processor Type");
                     throw new IllegalArgumentException("Unknown Processor Type");
             }
         }

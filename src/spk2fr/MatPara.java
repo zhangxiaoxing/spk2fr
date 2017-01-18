@@ -128,7 +128,7 @@ public class MatPara {
             s2f.setLeastFR(classify);
 
             if (format.toLowerCase().endsWith("allfr")) {
-                return s2f.getAllFringRate(s2f.buildData(evt, spk, format.substring(0, format.length() - 5)),
+                return s2f.getAllFiringRate(s2f.buildData(evt, spk, format.substring(0, format.length() - 5)),
                         type, s2f.setBin(binStart, binSize, binEnd), isS1);
             }
             return s2f.getSampleFringRate(s2f.buildData(evt, spk, format),
