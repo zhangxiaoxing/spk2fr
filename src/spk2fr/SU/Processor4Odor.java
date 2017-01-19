@@ -11,7 +11,7 @@ import java.util.ArrayList;
  *
  * @author Libra
  */
-public class Processor4Odor extends ProcessorAllFirstOdor {
+public class Processor4Odor extends ProcessorSample {
 
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {

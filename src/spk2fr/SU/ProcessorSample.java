@@ -13,7 +13,7 @@ import spk2fr.MiceDay;
  *
  * @author Libra
  */
-public abstract class ProcessorAllFirstOdor extends Processor {
+public abstract class ProcessorSample extends Processor {
 
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
@@ -28,14 +28,14 @@ public abstract class ProcessorAllFirstOdor extends Processor {
 
    
 
-    @Override
-    int getTypeATrialNum(MiceDay md) {
-        return md.countCorrectTrialByOdor(0, EventType.OdorA);
-    }
-
-    @Override
-    int getTypeBTrialNum(MiceDay md) {
-        return md.countCorrectTrialByOdor(0, EventType.OdorB);
-    }
+//    @Override
+//    int getTypeATrialNum(MiceDay md) {
+//        return md.countCorrectTrialByOdor(0, EventType.OdorA);
+//    }
+//
+//    @Override
+//    int getTypeBTrialNum(MiceDay md) {
+//        return md.countCorrectTrialByOdor(0, EventType.OdorB);
+//    }
 
 }

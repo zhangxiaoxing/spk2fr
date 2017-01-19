@@ -41,32 +41,32 @@ public class ProcessorSamplenDistrZ extends Processor {
             }
         }
     }
-
-    @Override
-    int getTypeATrialNum(MiceDay md) {
-        int counter = 0;
-        for (ArrayList<EventType[]> session : md.getBehaviorSessions()) {
-            for (EventType[] trial : session) {
-                if (trial[0] == EventType.OdorA && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) && trial[3] == distr) {
-                    counter++;
-                }
-            }
-        }
-        return counter;
-    }
-
-    @Override
-    int getTypeBTrialNum(MiceDay md) {
-        int counter = 0;
-        for (ArrayList<EventType[]> session : md.getBehaviorSessions()) {
-            for (EventType[] trial : session) {
-                if (trial[0] == EventType.OdorB && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) && trial[3] == distr) {
-                    counter++;
-                }
-            }
-        }
-        return counter;
-    }
+//
+//    @Override
+//    int getTypeATrialNum(MiceDay md) {
+//        int counter = 0;
+//        for (ArrayList<EventType[]> session : md.getBehaviorSessions()) {
+//            for (EventType[] trial : session) {
+//                if (trial[0] == EventType.OdorA && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) && trial[3] == distr) {
+//                    counter++;
+//                }
+//            }
+//        }
+//        return counter;
+//    }
+//
+//    @Override
+//    int getTypeBTrialNum(MiceDay md) {
+//        int counter = 0;
+//        for (ArrayList<EventType[]> session : md.getBehaviorSessions()) {
+//            for (EventType[] trial : session) {
+//                if (trial[0] == EventType.OdorB && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) && trial[3] == distr) {
+//                    counter++;
+//                }
+//            }
+//        }
+//        return counter;
+//    }
 
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {

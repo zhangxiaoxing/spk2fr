@@ -28,20 +28,15 @@ public class Processor4OpSuppress extends Processor {
 
         double[] baselineTSCount = new double[totalTrialCount];
         int trialIdx = 0;
-        boolean allZero = true;
         for (Trial trial : trialPool) {
             for (Double d : trial.getSpikesList()) {
                 if (d < 0 && d>=-1) {
                     baselineTSCount[trialIdx]++;
-                    allZero = false;
                 } else {
                     break;
                 }
             }
             trialIdx++;
-        }
-        if (allZero) {
-            baselineTSCount[0] = 1;
         }
         return convert2Stats(baselineTSCount);
     }
@@ -54,14 +49,14 @@ public class Processor4OpSuppress extends Processor {
         }
     }
 
-    @Override
-    int getTypeATrialNum(MiceDay md) {
-        return md.getBehaviorSessions().get(0).size();
-    }
-
-    @Override
-    int getTypeBTrialNum(MiceDay md) {
-        return md.getBehaviorSessions().get(0).size();
-    }
+//    @Override
+//    int getTypeATrialNum(MiceDay md) {
+//        return md.getBehaviorSessions().get(0).size();
+//    }
+//
+//    @Override
+//    int getTypeBTrialNum(MiceDay md) {
+//        return md.getBehaviorSessions().get(0).size();
+//    }
 
 }

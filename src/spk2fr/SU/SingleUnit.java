@@ -18,6 +18,7 @@ import spk2fr.EventType;
  */
 public class SingleUnit {
 
+    final boolean discardLackingTrials = false;
     final private HashMap<Integer, HashMap<Integer, Trial>> sessions;
     final private ArrayList<Trial> trialPool = new ArrayList<>();
 //    final private ArrayList<Double> spkPool = new ArrayList<>();
@@ -123,23 +124,30 @@ public class SingleUnit {
     /*
      SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
      */
-    public double[][] getSampleFR(spk2fr.MiceDay miceday, String type, float[] bin, int[][] sampleCount, int repeatCount) {  //firing rate, baseline assumed to be 1s
+    public double[][] getSampleFR(spk2fr.MiceDay miceday, String type, float[] bin, int[][] sampleCountIn, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
         Processor pr = new GetType(type).getProcessor();
-
-        int typeATrialCount = pr.getTypeATrialNum(miceday);
-        int typeBTrialCount = pr.getTypeBTrialNum(miceday);
 
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> typeAPool = pr.getTypeAPool();
         ArrayList<Trial> typeBPool = pr.getTypeBPool();
-        sampleCount = reduceSampleIfNecessary(sampleCount, typeATrialCount, typeBTrialCount, repeatCount);
+        int typeATrialCount = typeAPool.size();
+        int typeBTrialCount = typeBPool.size();
+        int[][] sampleCount = reduceSampleIfNecessary(sampleCountIn, typeATrialCount, typeBTrialCount, repeatCount);
         if (null == sampleCount || typeATrialCount < 1 || typeBTrialCount < 1) {
-            return null;
+            if (discardLackingTrials) {
+                return null;
+            } else {
+                double[][] samples = new double[repeatCount][Math.round((bin[2] - bin[0]) / bin[1]) * 4];
+                for (double[] row : samples) {
+                    Arrays.fill(row, 65535d);
+                }
+                return samples;
+            }
         }
         double[][] samples = new double[repeatCount][];
 
-        double[] stats = pr.getBaselineStats(this.trialPool, totalTrial(miceday));
+        double[] stats = pr.getBaselineStats(this.trialPool, this.trialPool.size());
         double meanBaseFR = stats[0];
         double stdBaseFR = stats[1];
         RandomDataGenerator rng = new RandomDataGenerator();
@@ -148,7 +156,8 @@ public class SingleUnit {
         float binSize = bin[1];
         float binEnd = bin[2];
         float unitFR = 1f / binSize;
-
+//if(typeATrialCount<40)
+//        System.out.println(typeATrialCount+","+Arrays.toString(sampleCount[0])+","+typeBTrialCount+","+Arrays.toString(sampleCount[1])); 
         for (int repeat = 0; repeat < repeatCount; repeat++) {
             int[] aPerm = rng.nextPermutation(typeATrialCount, sumSampleCount(sampleCount, 0));
             int[] bPerm = rng.nextPermutation(typeBTrialCount, sumSampleCount(sampleCount, 1));
@@ -173,7 +182,9 @@ public class SingleUnit {
             normalized[normalized.length - 1] = getPerf(sampleCount, aPerm, bPerm, typeAPool, typeBPool);
             samples[repeat] = normalized;
         }
+//        System.out.println("normal "+samples[0].length);
         return samples;
+
     }
 
     public double[][] getAllFR(spk2fr.MiceDay miceday, String type, float[] bin, boolean isS1) {  //firing rate, baseline assumed to be 1s
@@ -182,7 +193,6 @@ public class SingleUnit {
 
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> pool = isS1 ? pr.getTypeAPool() : pr.getTypeBPool();
-
         ArrayList<ArrayList<Double>> rasters = new ArrayList<>();
         for (Trial t : pool) {
             rasters.add(t.getSpikesList());
@@ -260,14 +270,6 @@ public class SingleUnit {
         }
     }
 
-    private int totalTrial(spk2fr.MiceDay md) {
-        int counter = 0;
-        for (ArrayList<EventType[]> session : md.getBehaviorSessions()) {
-            counter += session.size();
-        }
-        return counter;
-    }
-
     int sumSampleCount(int[][] samples, int grp) {
         int count = 0;
         for (int oneGrp : samples[grp]) {
@@ -277,27 +279,32 @@ public class SingleUnit {
     }
 
     int[][] reduceSampleIfNecessary(final int[][] sampleCount, int typeATrialCount, int typeBTrialCount, int repeat) {
-//        double[][] samples = new double[repeat][];
+        int[][] local = new int[sampleCount.length][sampleCount[0].length];
         for (int j = 0; j < 2; j++) {
             int requiredCount = sumSampleCount(sampleCount, j);
             int typeTrialCount = j == 0 ? typeATrialCount : typeBTrialCount;
             if (requiredCount > typeTrialCount) {
                 if (sampleCount[j].length < 3 && sampleCount[j][1] < 2) {//Decoding
-                    sampleCount[j][0] = typeTrialCount - sampleCount[j][1];
+                    local[j][0] = typeTrialCount - sampleCount[j][1];
+                    local[j][1] = sampleCount[j][1];
                 } else {
-                    sampleCount[j][0] = typeTrialCount;
+                    System.out.println("else");
+                    local[j][0] = typeTrialCount;
                     for (int i = sampleCount[j].length - 1; i > 0; i--) {
-                        sampleCount[j][i] = sampleCount[j][i] * typeTrialCount / requiredCount;
-                        sampleCount[j][0] -= sampleCount[j][i];
+                        local[j][i] = sampleCount[j][i] * typeTrialCount / requiredCount;
+                        local[j][0] -= local[j][i];
                     }
                 }
-                if (sampleCount[j][0] < 1) {
+                if (local[j][0] < 1) {
                     System.out.println("Not Enough Trial!");
                     return null;
                 }
+            }else{
+                local[j]=Arrays.copyOf(sampleCount[0], 2);
+
             }
         }
-        return sampleCount;
+        return local;
     }
 
 //    /*
@@ -414,7 +421,7 @@ public class SingleUnit {
                 case "matchz":
                 case "matcherrorz":
                 case "matcherror":
-                    processor = new ProcessorMatch(type.toLowerCase().contains("incorr"), type.toLowerCase().endsWith("z"),type.toLowerCase().contains("error"));
+                    processor = new ProcessorMatch(type.toLowerCase().contains("incorr"), type.toLowerCase().endsWith("z"), type.toLowerCase().contains("error"));
                     break;
                 default:
                     System.out.println(type + ": Unknown Processor Type");

@@ -75,8 +75,8 @@ public class Spk2fr {
             for (Integer unitKey : tetrode.getUnitKeys()) {
                 SingleUnit unit = tetrode.getSingleUnit(unitKey);
                 keyIdx.add(new int[]{tetKey, unitKey});
-                int a_trailNum = byMatch ? miceDay.countCorrectTrialByMatch(EventType.NONMATCH, true) : miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-                int b_trailNum = byMatch ? miceDay.countCorrectTrialByMatch(EventType.MATCH, true) : miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
+                int a_trailNum = byMatch ? miceDay.countTrialByMatch(EventType.NONMATCH, MiceDay.CorrectType.CORRECT) : miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
+                int b_trailNum = byMatch ? miceDay.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.CORRECT) : miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
                 TS.add(unit.getTrialTS(a_trailNum, b_trailNum, byMatch));
             }
         }

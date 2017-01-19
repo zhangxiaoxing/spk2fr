@@ -82,15 +82,29 @@ public class MiceDay {
         return count;
     }
 
+    public static enum CorrectType{
+        CORRECT,ALL,ERROR
+    }
 
-
-    public int countCorrectTrialByMatch(EventType isMatch, boolean correct) {
+    public int countTrialByMatch(EventType isMatch, CorrectType correct) {
         int count = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
-                boolean needCorrect = correct ? (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection) : true;
+                boolean matchCorrect=false;
+                switch (correct){
+                    case ALL:
+                        matchCorrect=true;
+                        break;
+                    case CORRECT:
+                        matchCorrect=trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection;
+                        break;
+                    case ERROR:
+                        matchCorrect=trial[2] == EventType.Miss || trial[2] == EventType.FalseAlarm;
+                        break;
+                }
+                
                 if ((trial[0] == trial[1]) == (isMatch == EventType.MATCH)
-                        && needCorrect) {
+                        && matchCorrect) {
                     count++;
                 }
             }

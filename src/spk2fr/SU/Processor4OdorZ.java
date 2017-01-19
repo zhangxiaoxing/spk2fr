@@ -12,13 +12,12 @@ import spk2fr.EventType;
  *
  * @author Libra
  */
-public class Processor4OdorZ extends ProcessorAllFirstOdor {
+public class Processor4OdorZ extends ProcessorSample {
 
     @Override
     public double[] getBaselineStats(final ArrayList<Trial> trialPool, int totalTrialCount) {
         double[] baselineTSCount = new double[totalTrialCount];
         int trialIdx = 0;
-        boolean allZero = true;
 
         for (Trial trial : trialPool) {
 //            if (trial.isCorrect()) {
@@ -26,7 +25,6 @@ public class Processor4OdorZ extends ProcessorAllFirstOdor {
                 if (d < 0d) {
                     if (d >= -1) {
                         baselineTSCount[trialIdx]++;
-                        allZero = false;
                     }
                 } else {
                     break;
@@ -36,9 +34,6 @@ public class Processor4OdorZ extends ProcessorAllFirstOdor {
 //            }
         }
 
-        if (allZero) {
-            baselineTSCount[0] = 1;
-        }
         return convert2Stats(baselineTSCount);
     }
 

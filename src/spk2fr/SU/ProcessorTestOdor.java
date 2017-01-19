@@ -13,7 +13,7 @@ import spk2fr.MiceDay;
  *
  * @author Libra
  */
-public class ProcessorTestOdor extends ProcessorAllFirstOdor {
+public class ProcessorTestOdor extends ProcessorSample {
 
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
@@ -30,14 +30,14 @@ public class ProcessorTestOdor extends ProcessorAllFirstOdor {
             }
         }
     }
-
-    @Override
-    int getTypeATrialNum(MiceDay md) {
-        return md.countCorrectTrialByOdor(1, EventType.OdorA);
-    }
-
-    @Override
-    int getTypeBTrialNum(MiceDay md) {
-        return md.countCorrectTrialByOdor(1, EventType.OdorB);
-    }
+//
+//    @Override
+//    int getTypeATrialNum(MiceDay md) {
+//        return md.countCorrectTrialByOdor(1, EventType.OdorA);
+//    }
+//
+//    @Override
+//    int getTypeBTrialNum(MiceDay md) {
+//        return md.countCorrectTrialByOdor(1, EventType.OdorB);
+//    }
 }

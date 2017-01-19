@@ -14,10 +14,10 @@ import spk2fr.MiceDay;
  * @author Libra
  */
 public abstract class Processor {
-    ArrayList<Trial> typeAPool=new ArrayList<>();
-    ArrayList<Trial> typeBPool=new ArrayList<>();
 
-    
+    ArrayList<Trial> typeAPool = new ArrayList<>();
+    ArrayList<Trial> typeBPool = new ArrayList<>();
+
     public ArrayList<Trial> getTypeAPool() {
         return typeAPool;
     }
@@ -27,15 +27,21 @@ public abstract class Processor {
     }
 
     double[] convert2Stats(double[] baselineTSCount) {
-        return new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
+        double[] stats = new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
+        if (stats[0] == 0 && stats[1] == 0) {
+            System.out.println("Zero baseline.");
+            baselineTSCount[0]=1;
+            stats = new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
+        }
+        return stats;
     }
-    
+
     abstract double[] getBaselineStats(final ArrayList<Trial> trialPool, int totalTrialCount);
 
     abstract void fillPoolsByType(final ArrayList<Trial> trialPool);
-    
-    abstract int getTypeATrialNum(MiceDay md);
-    
-    abstract int getTypeBTrialNum(MiceDay md);
+
+//    abstract int getTypeATrialNum(MiceDay md);
+//
+//    abstract int getTypeBTrialNum(MiceDay md);
 
 }

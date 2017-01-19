@@ -6,6 +6,7 @@
 package spk2fr.SU;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import spk2fr.EventType;
 import spk2fr.FP.FileParser;
 import spk2fr.MiceDay;
@@ -55,44 +56,58 @@ public class ProcessorMatch extends Processor {
         }
     }
 
-    @Override
-    int getTypeATrialNum(MiceDay md) {
-        return md.countCorrectTrialByMatch(EventType.MATCH, !this.incIncorrect);
-    }
-
-    @Override
-    int getTypeBTrialNum(MiceDay md) {
-        return md.countCorrectTrialByMatch(EventType.NONMATCH, !this.incIncorrect);
-    }
+//    @Override
+//    int getTypeATrialNum(MiceDay md) {
+//        if (this.incIncorrect) {
+//            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.ALL);
+//        } else if (this.error) {
+//            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.ERROR);
+//        } else {
+//            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.CORRECT);
+//        }
+//    }
+//
+//    @Override
+//    int getTypeBTrialNum(MiceDay md) {
+//        if (this.incIncorrect) {
+//            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.ALL);
+//        } else if (this.error) {
+//            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.ERROR);
+//        } else {
+//            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.CORRECT);
+//        }
+//    }
 
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
         if (this.z) {
-            double[] baselineTSCount = new double[totalTrialCount];
-            int trialIdx = 0;
-            boolean allZero = true;
+            LinkedList<Integer> baselineTSCount = new LinkedList<>();
 
+            int counter;
+//            LinkedList<Trial> trials = new LinkedList<>();
+//            trials.addAll(this.typeAPool);
+//            trials.addAll(this.typeBPool);
             for (Trial trial : trialPool) {
                 double testOnset = trial.getLength() - FileParser.rewardBias - FileParser.baseBias - 2;
-                if ((trial.isCorrect() && !this.error) || (this.error && !trial.isCorrect())) {
-                    for (Double d : trial.getSpikesList()) {
-                        if (d < testOnset) {
-                            if (d >= testOnset - 1) {
-                                baselineTSCount[trialIdx]++;
-                                allZero = false;
-                            }
-                        } else {
-                            break;
+                counter = 0;
+                for (Double d : trial.getSpikesList()) {
+                    if (d < testOnset) {
+                        if (d >= testOnset - 1) {
+                            counter++;
                         }
+                    } else {
+                        break;
                     }
-                    trialIdx++;
                 }
+                baselineTSCount.addLast(counter);
             }
 
-            if (allZero) {
-                baselineTSCount[0] = 1;
+            double[] base = new double[baselineTSCount.size()];
+            int cIdx = 0;
+            for (Integer t : baselineTSCount) {
+                base[cIdx++] = t;
             }
-            return convert2Stats(baselineTSCount);
+            return convert2Stats(base);
         } else {
             return new double[]{0, 1};
         }
