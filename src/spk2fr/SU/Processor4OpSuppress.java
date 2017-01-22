@@ -21,12 +21,12 @@ public class Processor4OpSuppress extends Processor {
     }
 
     @Override
-    double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
+    double[] getBaselineStats(ArrayList<Trial> trialPool) {
         if (!z) {
             return new double[]{0, 1};
         }
 
-        double[] baselineTSCount = new double[totalTrialCount];
+        double[] baselineTSCount = new double[trialPool.size()];
         int trialIdx = 0;
         for (Trial trial : trialPool) {
             for (Double d : trial.getSpikesList()) {

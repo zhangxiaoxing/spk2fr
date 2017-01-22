@@ -7,6 +7,7 @@ package spk2fr.FP;
 
 import spk2fr.SU.Trial;
 import java.util.Comparator;
+import java.util.HashSet;
 import spk2fr.EventType;
 import spk2fr.MiceDay;
 import spk2fr.SU.SingleUnit;
@@ -20,6 +21,7 @@ public abstract class FileParser {
 
     public static final int baseBias = 0;
     public static final int rewardBias = 5;
+    HashSet<Integer> unitSet = new HashSet<>();
 
     public abstract MiceDay processFile(double[][] evts, double[][] spk);
 
@@ -46,19 +48,24 @@ public abstract class FileParser {
     }
 
     protected void sortSpikes(double[][] spk, MiceDay miceDay, double baseOnset, double testOffset, EventType sample, EventType test, EventType response, int sessionIdx, int trialIdx) {
+        for (Integer unit : unitSet) {
+            int tet = unit >> 8;
+            int su = unit & 0xff;
+            miceDay.getTetrode(tet)
+                    .getSingleUnit(su)
+                    .getTrial(sessionIdx, trialIdx)
+                    .setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
+        }
+
         while (spkIdx < spk.length && spk[spkIdx][2] < testOffset + FileParser.rewardBias) {
             if (spk[spkIdx][1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(spk[spkIdx][0]))
-                        .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();
+                        .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();//for average over whole trial;
                 if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
-                    Trial currentTrial = miceDay.getTetrode((int) (spk[spkIdx][0] + 0.5))
+                    miceDay.getTetrode((int) (spk[spkIdx][0] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
-                            .getTrial(sessionIdx, trialIdx);
-
-                    if (!currentTrial.isSet()) {
-                        currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
-                    }
-                    currentTrial.addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
+                            .getTrial(sessionIdx, trialIdx)
+                            .addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }
             spkIdx++;

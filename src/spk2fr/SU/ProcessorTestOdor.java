@@ -15,29 +15,33 @@ import spk2fr.MiceDay;
  */
 public class ProcessorTestOdor extends ProcessorSample {
 
+    public ProcessorTestOdor(boolean isZ, boolean isError) {
+        super(isZ, isError);
+    }
+
     @Override
-    double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
+    public double[] getBaselineStats(ArrayList<Trial> trialPool) {
         return new double[]{0, 1};
     }
 
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
-        for (Trial trial : trialPool) {
-            if (trial.testOdorIs(EventType.OdorA) && trial.isCorrect()) {
-                typeAPool.add(trial);
-            } else if (trial.testOdorIs(EventType.OdorB) && trial.isCorrect()) {
-                typeBPool.add(trial);
+        if (this.isError) {
+            for (Trial trial : trialPool) {
+                if (trial.testOdorIs(EventType.OdorA) && !trial.isCorrect()) {
+                    typeAPool.add(trial);
+                } else if (trial.testOdorIs(EventType.OdorB) && !trial.isCorrect()) {
+                    typeBPool.add(trial);
+                }
+            }
+        } else {
+            for (Trial trial : trialPool) {
+                if (trial.testOdorIs(EventType.OdorA) && trial.isCorrect()) {
+                    typeAPool.add(trial);
+                } else if (trial.testOdorIs(EventType.OdorB) && trial.isCorrect()) {
+                    typeBPool.add(trial);
+                }
             }
         }
     }
-//
-//    @Override
-//    int getTypeATrialNum(MiceDay md) {
-//        return md.countCorrectTrialByOdor(1, EventType.OdorA);
-//    }
-//
-//    @Override
-//    int getTypeBTrialNum(MiceDay md) {
-//        return md.countCorrectTrialByOdor(1, EventType.OdorB);
-//    }
 }

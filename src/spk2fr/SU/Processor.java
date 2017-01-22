@@ -36,7 +36,7 @@ public abstract class Processor {
         return stats;
     }
 
-    abstract double[] getBaselineStats(final ArrayList<Trial> trialPool, int totalTrialCount);
+    abstract double[] getBaselineStats(final ArrayList<Trial> trialPool);
 
     abstract void fillPoolsByType(final ArrayList<Trial> trialPool);
 

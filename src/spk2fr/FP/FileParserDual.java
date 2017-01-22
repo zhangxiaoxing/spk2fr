@@ -20,6 +20,11 @@ public class FileParserDual extends FileParser {
 
     @Override
     public MiceDay processFile(double[][] evts, double[][] spk) {
+        for (double[] oneSpk : spk) {
+            if (oneSpk[1] > 0.5) {
+                unitSet.add((((int) (oneSpk[0] + 0.5)) << 8) + (int) (oneSpk[1] + 0.5));
+            }
+        }
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
         MiceDay miceDay = new MiceDay();
         Arrays.sort(spk, new SpkSorterByTime(true));
@@ -92,26 +97,26 @@ public class FileParserDual extends FileParser {
     }
 
     private void sortSpikes(double[][] spk, MiceDay miceDay, double baseOnset, double testOffset, EventType sample, EventType test, EventType response, int sessionIdx, int trialIdx, EventType distrOdor) {
-        while (spkIdx < spk.length && spk[spkIdx][2] < testOffset+FileParser.rewardBias) {
+        for (Integer unit : unitSet) {
+            int tet = unit >> 8;
+            int su = unit & 0xff;
+            Trial currentTrial = new DualTrial();
+            currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
+            ((DualTrial) currentTrial).setDistrOdor(distrOdor);
+            miceDay.getTetrode(tet)
+                    .getSingleUnit(su)
+                    .setTrial(sessionIdx, trialIdx, currentTrial);
+        }
+
+        while (spkIdx < spk.length && spk[spkIdx][2] < testOffset + FileParser.rewardBias) {
             if (spk[spkIdx][1] > 0.5) {
                 miceDay.getTetrode((int) Math.round(spk[spkIdx][3]))
                         .getSingleUnit((int) Math.round(spk[spkIdx][1])).addspk();
                 if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
-                    Trial currentTrial = miceDay.getTetrode((int) (spk[spkIdx][3] + 0.5))
+                    miceDay.getTetrode((int) (spk[spkIdx][3] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
-                            .getTrial(sessionIdx, trialIdx);
-                    if (!(currentTrial instanceof DualTrial)) {
-                        currentTrial = new DualTrial();
-                        miceDay.getTetrode((int) (spk[spkIdx][3] + 0.5))
-                                .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
-                                .setTrial(sessionIdx, trialIdx, currentTrial);
-                    }
-
-                    if (!currentTrial.isSet()) {
-                        currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
-                        ((DualTrial) currentTrial).setDistrOdor(distrOdor);
-                    }
-                    currentTrial.addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
+                            .getTrial(sessionIdx, trialIdx)
+                            .addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }
             spkIdx++;

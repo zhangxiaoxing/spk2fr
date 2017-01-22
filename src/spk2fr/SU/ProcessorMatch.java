@@ -79,14 +79,11 @@ public class ProcessorMatch extends Processor {
 //    }
 
     @Override
-    double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
+    double[] getBaselineStats(ArrayList<Trial> trialPool) {
         if (this.z) {
             LinkedList<Integer> baselineTSCount = new LinkedList<>();
 
             int counter;
-//            LinkedList<Trial> trials = new LinkedList<>();
-//            trials.addAll(this.typeAPool);
-//            trials.addAll(this.typeBPool);
             for (Trial trial : trialPool) {
                 double testOnset = trial.getLength() - FileParser.rewardBias - FileParser.baseBias - 2;
                 counter = 0;

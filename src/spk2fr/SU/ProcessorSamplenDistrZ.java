@@ -22,13 +22,13 @@ public class ProcessorSamplenDistrZ extends Processor {
     public ProcessorSamplenDistrZ() {
         this.distr = EventType.NONE;
         this.Z = true;
-        this.incIncorr=false;
+        this.incIncorr = false;
     }
 
-    public ProcessorSamplenDistrZ(EventType distr, boolean Z,boolean incIncorr) {
+    public ProcessorSamplenDistrZ(EventType distr, boolean Z, boolean incIncorr) {
         this.distr = distr;
         this.Z = Z;
-        this.incIncorr=incIncorr;
+        this.incIncorr = incIncorr;
     }
 
     @Override
@@ -69,13 +69,9 @@ public class ProcessorSamplenDistrZ extends Processor {
 //    }
 
     @Override
-    double[] getBaselineStats(ArrayList<Trial> trialPool, int totalTrialCount) {
-        if (this.Z) {
-            Processor4OdorZ pr = new Processor4OdorZ();
-            return pr.getBaselineStats(trialPool, totalTrialCount);
-        } else {
-            return new double[]{0, 1};
-        }
+    double[] getBaselineStats(ArrayList<Trial> trialPool) {
+        ProcessorSample pr = new ProcessorSample(this.Z, false);
+        return pr.getBaselineStats(trialPool);
     }
 
 }

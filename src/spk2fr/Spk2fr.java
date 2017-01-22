@@ -18,7 +18,6 @@ import spk2fr.SU.SingleUnit;
  */
 public class Spk2fr {
 
-//    final protected FileParserDNMS fp;
     protected int wellTrainOnly = 0;//0=not well-trained; 1=well-trained; 2=include all;
     protected ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
     protected double refracRatio = 0.0015;
@@ -28,46 +27,14 @@ public class Spk2fr {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
         System.out.println(Runtime.getRuntime().maxMemory() / 1024 / 1024);
     }
 
-//    public Spk2fr() {
-//        fp = new FileParserDNMS();
-//    }
-//    public Spk2fr(String format) {
-//
-//    }
-//
-//    public void spk2fr(double[][] evts, double[][] spk) {
-//
-//    }
-//    /*
-//    For temporary check only
-//    */
-//    public double[][] getBaselineTS() {
-//        ArrayList<double[]> baseTS = new ArrayList<>();
-//        for (Tetrode tetrode : miceDay.getTetrodes()) {
-//            for (SingleUnit unit : tetrode.getUnits()) {
-//                baseTS.add(unit.getBaselineTS(fp.countCorrectTrialByOdor(0) + fp.countCorrectTrialByOdor(1)));
-//            }
-//        }
-//        return baseTS.toArray(new double[baseTS.size()][]);
-//    }
-
-    /*
-     For temporary check only
-     */
     public double[][][][] getTS(double[][] evts, double[][] spk, String type, boolean byMatch) {
         MiceDay miceDay = parseEvts(buildData(evts, spk, type));
         if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
             return null;
         }
-
-//        int[] params = getTrialNum(type);
-//        ClassifyType cType = ClassifyType.values()[params[0]];
-//        int typeATrials = params[1];
-//        int typeBTrials = params[2];
         ArrayList<double[][][]> TS = new ArrayList<>();
         keyIdx = new ArrayList<>();
         for (Integer tetKey : miceDay.getTetrodeKeys()) {
@@ -137,7 +104,6 @@ public class Spk2fr {
                 double[][] rtn = unit.getSampleFR(miceDay, type, bin, sampleSize, repeats);
                 if (null != rtn && rtn.length > 0) {
                     keyIdx.add(new int[]{tetKey, unitKey});
-//                    System.out.println("keyIdx, " + tetKey + ", " + unitKey);
                     frs.add(rtn);
                 }
             }
@@ -160,7 +126,6 @@ public class Spk2fr {
                 double[][] rtn = unit.getAllFR(miceDay, type, bin, isS1);
                 if (null != rtn && rtn.length > 0) {
                     keyIdx.add(new int[]{tetKey, unitKey});
-//                    System.out.println("keyIdx, " + tetKey + ", " + unitKey);
                     frs.add(rtn);
                 }
             }
@@ -168,9 +133,6 @@ public class Spk2fr {
         return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx());
     }
 
-//    public int getTrialCountByFirstOdor(int odor) {
-//        return miceDay.countCorrectTrialByOdor(0, odor == 0 ? EventType.OdorA : EventType.OdorB);
-//    }
     public ArrayList<String> listFiles(String rootPath, String[] elements) {
         ArrayList<String> fileList = new ArrayList<>();
         if (rootPath == null) {
@@ -232,18 +194,6 @@ public class Spk2fr {
 
     }
 
-//    public int[][] getBehaviorTrials() {
-//
-//        ArrayList<EventType[]> pool = new ArrayList<>();
-//        for (ArrayList<EventType[]> sess : miceDay.getBehaviorSessions()) {
-//            pool.addAll(sess);
-//        }
-//        int[][] rtn = new int[pool.size()][];
-//        for (int i = 0; i < rtn.length; i++) {
-//            rtn[i] = new int[]{pool.get(i)[0].ordinal(), pool.get(i)[1].ordinal(), pool.get(i)[2].ordinal()};
-//        }
-//        return rtn;
-//    }
     public double[][] rebuild(double[][] evts, double delay) {
         return RebuildEventFile.rebulid(evts, delay);
     }
