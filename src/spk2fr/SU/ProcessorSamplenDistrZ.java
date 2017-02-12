@@ -70,7 +70,7 @@ public class ProcessorSamplenDistrZ extends Processor {
 
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool) {
-        ProcessorSample pr = new ProcessorSample(this.Z, false);
+        ProcessorSample pr = new ProcessorSample(this.Z, false,false);
         return pr.getBaselineStats(trialPool);
     }
 

@@ -6,8 +6,9 @@
 package spk2fr.SU;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import spk2fr.EventType;
-import spk2fr.MiceDay;
+import spk2fr.FP.FileParser;
 
 /**
  *
@@ -16,12 +17,38 @@ import spk2fr.MiceDay;
 public class ProcessorTestOdor extends ProcessorSample {
 
     public ProcessorTestOdor(boolean isZ, boolean isError) {
-        super(isZ, isError);
+        super(isZ, isError, false);
     }
 
     @Override
     public double[] getBaselineStats(ArrayList<Trial> trialPool) {
-        return new double[]{0, 1};
+        if (this.isZ) {
+            LinkedList<Integer> baselineTSCount = new LinkedList<>();
+            int counter;
+            for (Trial trial : trialPool) {
+                double testOnset = trial.getLength() - FileParser.rewardBias - FileParser.baseBias - 2;
+                counter = 0;
+                for (Double d : trial.getSpikesList()) {
+                    if (d < testOnset) {
+                        if (d >= testOnset - 1) {
+                            counter++;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                baselineTSCount.addLast(counter);
+            }
+
+            double[] base = new double[baselineTSCount.size()];
+            int cIdx = 0;
+            for (Integer t : baselineTSCount) {
+                base[cIdx++] = t;
+            }
+            return convert2Stats(base);
+        } else {
+            return new double[]{0, 1};
+        }
     }
 
     @Override

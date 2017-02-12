@@ -16,15 +16,25 @@ public class ProcessorSample extends Processor {
 
     final boolean isZ;
     final boolean isError;
+    final boolean incError;
 
-    public ProcessorSample(boolean isZ, boolean isError) {
+    public ProcessorSample(boolean isZ, boolean isError, boolean incError) {
         this.isZ = isZ;
         this.isError = isError;
+        this.incError = incError;
     }
 
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
-        if (this.isError) {
+        if (this.incError) {
+            for (Trial trial : trialPool) {
+                if (trial.sampleOdorIs(EventType.OdorA)) {
+                    typeAPool.add(trial);
+                } else if (trial.sampleOdorIs(EventType.OdorB)) {
+                    typeBPool.add(trial);
+                }
+            }
+        } else if (this.isError) {
             for (Trial trial : trialPool) {
                 if (trial.sampleOdorIs(EventType.OdorA) && !trial.isCorrect()) {
                     typeAPool.add(trial);
@@ -46,7 +56,6 @@ public class ProcessorSample extends Processor {
     @Override
     public double[] getBaselineStats(final ArrayList<Trial> trialPool) {
         if (this.isZ) {
-
             double[] baselineTSCount = new double[trialPool.size()];
             int trialIdx = 0;
 
@@ -62,7 +71,6 @@ public class ProcessorSample extends Processor {
                 }
                 trialIdx++;
             }
-
             return convert2Stats(baselineTSCount);
         } else {
             return new double[]{0, 1};

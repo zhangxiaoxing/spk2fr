@@ -288,7 +288,6 @@ public class SingleUnit {
                     local[j][0] = typeTrialCount - sampleCount[j][1];
                     local[j][1] = sampleCount[j][1];
                 } else {
-                    System.out.println("else");
                     local[j][0] = typeTrialCount;
                     for (int i = sampleCount[j].length - 1; i > 0; i--) {
                         local[j][i] = sampleCount[j][i] * typeTrialCount / requiredCount;
@@ -386,13 +385,35 @@ public class SingleUnit {
         GetType(String type) {
 //            int[] counts;
             switch (type.toLowerCase()) {
-                case "odor":
-                case "odorz":
+                case "matchsample":
+                case "matchsamplez":
+                case "nonmatchsample":
+                case "nonmatchsamplez":
+                case "matchsampleerror":
+                case "matchsampleerrorz":
+                case "nonmatchsampleerror":
+                case "nonmatchsampleerrorz":
+                case "matchtest":
+                case "matchtestz":
+                case "nonmatchtest":
+                case "nonmatchtestz":
+                case "matchtesterror":
+                case "matchtesterrorz":
+                case "nonmatchtesterror":
+                case "nonmatchtesterrorz":
+                    processor = new ProcessorMatchCross(type.toLowerCase().endsWith("z"),
+                            type.toLowerCase().contains("error"),
+                            type.toLowerCase().startsWith("match"),
+                            type.toLowerCase().contains("sample"));
+                    break;
+//                case "odor":
+//                case "odorz":
                 case "sample":
                 case "samplez":
                 case "sampleerror":
                 case "sampleerrorz":
-                    processor = new ProcessorSample(type.toLowerCase().endsWith("z"), type.toLowerCase().contains("error"));
+                case "sampleall":
+                    processor = new ProcessorSample(type.toLowerCase().endsWith("z"), type.toLowerCase().contains("error"),type.toLowerCase().contains("all"));
                     break;
                 case "test":
                 case "testerror":

@@ -16,17 +16,17 @@ import spk2fr.MiceDay;
  * @author zx
  */
 public class ProcessorMatch extends Processor {
-
+    
     final boolean incIncorrect;
     final boolean z;
     final boolean error;
-
+    
     public ProcessorMatch(boolean incIncorrect, boolean z, boolean error) {
         this.incIncorrect = incIncorrect;
         this.z = z;
         this.error = error;
     }
-
+    
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
         if (this.incIncorrect) {
@@ -77,36 +77,9 @@ public class ProcessorMatch extends Processor {
 //            return md.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.CORRECT);
 //        }
 //    }
-
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool) {
-        if (this.z) {
-            LinkedList<Integer> baselineTSCount = new LinkedList<>();
-
-            int counter;
-            for (Trial trial : trialPool) {
-                double testOnset = trial.getLength() - FileParser.rewardBias - FileParser.baseBias - 2;
-                counter = 0;
-                for (Double d : trial.getSpikesList()) {
-                    if (d < testOnset) {
-                        if (d >= testOnset - 1) {
-                            counter++;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-                baselineTSCount.addLast(counter);
-            }
-
-            double[] base = new double[baselineTSCount.size()];
-            int cIdx = 0;
-            for (Integer t : baselineTSCount) {
-                base[cIdx++] = t;
-            }
-            return convert2Stats(base);
-        } else {
-            return new double[]{0, 1};
-        }
+        ProcessorTestOdor pr = new ProcessorTestOdor(z, error);
+        return pr.getBaselineStats(trialPool);
     }
 }
