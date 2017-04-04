@@ -16,8 +16,8 @@ import spk2fr.FP.FileParser;
  */
 public class ProcessorTestOdor extends ProcessorSample {
 
-    public ProcessorTestOdor(boolean isZ, boolean isError) {
-        super(isZ, isError, false);
+    public ProcessorTestOdor(boolean isZ, boolean isError, boolean isAll) {
+        super(isZ, isError, isAll);
     }
 
     @Override
@@ -53,7 +53,15 @@ public class ProcessorTestOdor extends ProcessorSample {
 
     @Override
     void fillPoolsByType(final ArrayList<Trial> trialPool) {
-        if (this.isError) {
+        if (this.incError) {
+            for (Trial trial : trialPool) {
+                if (trial.testOdorIs(EventType.OdorA)) {
+                    typeAPool.add(trial);
+                } else if (trial.testOdorIs(EventType.OdorB)) {
+                    typeBPool.add(trial);
+                }
+            }
+        } else if (this.isError) {
             for (Trial trial : trialPool) {
                 if (trial.testOdorIs(EventType.OdorA) && !trial.isCorrect()) {
                     typeAPool.add(trial);

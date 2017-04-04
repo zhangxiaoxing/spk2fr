@@ -79,7 +79,7 @@ public class ProcessorMatch extends Processor {
 //    }
     @Override
     double[] getBaselineStats(ArrayList<Trial> trialPool) {
-        ProcessorTestOdor pr = new ProcessorTestOdor(z, error);
+        ProcessorTestOdor pr = new ProcessorTestOdor(z, error,false);
         return pr.getBaselineStats(trialPool);
     }
 }

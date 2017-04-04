@@ -67,7 +67,7 @@ public class ProcessorMatchCross extends Processor {
             ProcessorSample ps = new ProcessorSample(isZ, isError,false);
             return ps.getBaselineStats(trialPool);
         } else {
-            ProcessorTestOdor pr = new ProcessorTestOdor(isZ, isError);
+            ProcessorTestOdor pr = new ProcessorTestOdor(isZ, isError,false);
             return pr.getBaselineStats(trialPool);
         }
     }

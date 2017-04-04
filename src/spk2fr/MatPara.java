@@ -50,12 +50,12 @@ public class MatPara {
     }
 
     synchronized public Future<ComboReturnType> parGetAllFR(String trialF,
-            String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {
+            String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {//S1: true=odor1, false=odorb
         return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, isS1));
     }
 
     public void setFormat(String format) {
-        this.format = format;
+        this.format = format.toLowerCase();
     }
 
     class ParSpk2fr implements Callable<ComboReturnType> {

@@ -48,13 +48,19 @@ public abstract class FileParser {
     }
 
     protected void sortSpikes(double[][] spk, MiceDay miceDay, double baseOnset, double testOffset, EventType sample, EventType test, EventType response, int sessionIdx, int trialIdx) {
+//        System.out.println("unitset size, "+unitSet.size());
         for (Integer unit : unitSet) {
+//            System.out.println("unit, "+unit);
             int tet = unit >> 8;
             int su = unit & 0xff;
+            Trial currentTrial=new Trial();
+            currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
             miceDay.getTetrode(tet)
                     .getSingleUnit(su)
-                    .getTrial(sessionIdx, trialIdx)
-                    .setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
+                    .setTrial(sessionIdx, trialIdx, currentTrial);
+                    
+//                    .getTrial(sessionIdx, trialIdx, tet, su)
+//                    .setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
         }
 
         while (spkIdx < spk.length && spk[spkIdx][2] < testOffset + FileParser.rewardBias) {
@@ -64,7 +70,7 @@ public abstract class FileParser {
                 if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
                     miceDay.getTetrode((int) (spk[spkIdx][0] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
-                            .getTrial(sessionIdx, trialIdx)
+                            .getTrial(sessionIdx, trialIdx,(int) Math.round(spk[spkIdx][0]),(int) Math.round(spk[spkIdx][1]))
                             .addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }

@@ -100,6 +100,7 @@ public class FileParserDual extends FileParser {
         for (Integer unit : unitSet) {
             int tet = unit >> 8;
             int su = unit & 0xff;
+            System.out.println("Set, tet "+tet+", su "+su);
             Trial currentTrial = new DualTrial();
             currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
             ((DualTrial) currentTrial).setDistrOdor(distrOdor);
@@ -115,7 +116,7 @@ public class FileParserDual extends FileParser {
                 if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
                     miceDay.getTetrode((int) (spk[spkIdx][3] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
-                            .getTrial(sessionIdx, trialIdx)
+                            .getTrial(sessionIdx, trialIdx,(int) Math.round(spk[spkIdx][3]),(int) Math.round(spk[spkIdx][1]))
                             .addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }
