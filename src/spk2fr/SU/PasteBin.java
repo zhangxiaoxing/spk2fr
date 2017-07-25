@@ -92,8 +92,8 @@ public class PasteBin {
     void fillPoolsByType(final ClassifyType cType, final ArrayList<Trial> typeAPool, final ArrayList<Trial> typeBPool) {
 
         switch (cType) {
-            case BY_ODOR:
-            case BY_ODOR_WITHIN_MEAN_TRIAL:
+            case BY_SAMPLE:
+            case BY_SAMPLE_WITHIN_MEAN_TRIAL:
             case BY_ODOR_WITHIN_MEAN_TRIAL_Z:
                 for (Trial trial : this.trialPool) {
                     if (trial.sampleOdorIs(EventType.OdorA) && trial.isCorrect()) {

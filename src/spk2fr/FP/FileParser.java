@@ -53,12 +53,12 @@ public abstract class FileParser {
 //            System.out.println("unit, "+unit);
             int tet = unit >> 8;
             int su = unit & 0xff;
-            Trial currentTrial=new Trial();
-            currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
+            Trial currentTrial = new Trial();
+            currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias,baseOnset);
             miceDay.getTetrode(tet)
                     .getSingleUnit(su)
                     .setTrial(sessionIdx, trialIdx, currentTrial);
-                    
+
 //                    .getTrial(sessionIdx, trialIdx, tet, su)
 //                    .setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
         }
@@ -70,7 +70,7 @@ public abstract class FileParser {
                 if (spk[spkIdx][2] > baseOnset - FileParser.baseBias) {
                     miceDay.getTetrode((int) (spk[spkIdx][0] + 0.5))
                             .getSingleUnit((int) (spk[spkIdx][1] + 0.5))
-                            .getTrial(sessionIdx, trialIdx,(int) Math.round(spk[spkIdx][0]),(int) Math.round(spk[spkIdx][1]))
+                            .getTrial(sessionIdx, trialIdx, (int) Math.round(spk[spkIdx][0]), (int) Math.round(spk[spkIdx][1]))
                             .addSpk(spk[spkIdx][2] - baseOnset - 1);//Odor1 Start at 0;
                 }
             }
@@ -84,6 +84,30 @@ public abstract class FileParser {
                 unit.poolTrials();
             }
         }
+    }
+
+    protected double[][] removeMissingTrials(double[][] evts) {
+        int lickPos = evts[0].length - 2;
+        int threshold = 10;
+        for (int i = 0; i < evts.length - threshold; i++) {
+            int counter = 0;
+            for (int missingCount = i; missingCount < i + threshold; missingCount++) {
+                counter += evts[missingCount][lickPos] == 0 ? 1 : 0;
+            }
+            if (counter >= threshold) {
+                if (i > 15) {
+//                    System.out.println("Before, "+evts.length+", After, "+i);
+                    double[][] removed = new double[i][];
+                    for (int j = 0; j < i; j++) {
+                        removed[j] = evts[j];
+                    }
+                    return removed;
+                } else {
+                    return new double[0][0];
+                }
+            }
+        }
+        return evts;
     }
 
 }

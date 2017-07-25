@@ -30,21 +30,28 @@ public class Spk2fr {
         System.out.println(Runtime.getRuntime().maxMemory() / 1024 / 1024);
     }
 
-    public double[][][][] getTS(double[][] evts, double[][] spk, String type, boolean byMatch) {
+    public double[][][][] getTS(double[][] evts, double[][] spk, String type, boolean byLick, boolean isCorrect) {
+        keyIdx = new ArrayList<>();
         MiceDay miceDay = parseEvts(buildData(evts, spk, type));
-        if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly != 2 && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
+        if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly !=  && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
             return null;
         }
         ArrayList<double[][][]> TS = new ArrayList<>();
-        keyIdx = new ArrayList<>();
         for (Integer tetKey : miceDay.getTetrodeKeys()) {
             Tetrode tetrode = miceDay.getTetrode(tetKey);
             for (Integer unitKey : tetrode.getUnitKeys()) {
                 SingleUnit unit = tetrode.getSingleUnit(unitKey);
                 keyIdx.add(new int[]{tetKey, unitKey});
-                int a_trailNum = byMatch ? miceDay.countTrialByMatch(EventType.NONMATCH, MiceDay.CorrectType.CORRECT) : miceDay.countCorrectTrialByOdor(0, EventType.OdorB);
-                int b_trailNum = byMatch ? miceDay.countTrialByMatch(EventType.MATCH, MiceDay.CorrectType.CORRECT) : miceDay.countCorrectTrialByOdor(0, EventType.OdorA);
-                TS.add(unit.getTrialTS(a_trailNum, b_trailNum, byMatch));
+                int a_trailNum, b_trailNum;
+                if (byLick) {
+                    a_trailNum = miceDay.countTrialByLick(true);
+                    b_trailNum = miceDay.countTrialByLick(false);
+                } else {
+                    int idx=isCorrect?0:1;
+                    a_trailNum = miceDay.countCorrectErrorTrialByOdor(0, EventType.OdorA)[idx];
+                    b_trailNum = miceDay.countCorrectErrorTrialByOdor(0, EventType.OdorB)[idx];
+                }
+                TS.add(unit.getTrialTS(a_trailNum, b_trailNum, byLick, isCorrect));
             }
         }
         return TS.toArray(new double[TS.size()][][][]);

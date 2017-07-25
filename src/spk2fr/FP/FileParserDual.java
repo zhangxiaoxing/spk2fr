@@ -22,7 +22,7 @@ public class FileParserDual extends FileParser {
     public MiceDay processFile(double[][] evts, double[][] spk) {
         for (double[] oneSpk : spk) {
             if (oneSpk[1] > 0.5) {
-                unitSet.add((((int) (oneSpk[0] + 0.5)) << 8) + (int) (oneSpk[1] + 0.5));
+                unitSet.add((((int) (oneSpk[3] + 0.5)) << 8) + (int) (oneSpk[1] + 0.5));
             }
         }
         ArrayList<ArrayList<EventType[]>> behaviorSessions = new ArrayList<>();
@@ -74,35 +74,14 @@ public class FileParserDual extends FileParser {
         }
     }
 
-    private double[][] removeMissingTrials(double[][] evts) {
-        int threshold = 10;
-        for (int i = 0; i < evts.length - threshold; i++) {
-            int counter = 0;
-            for (int missingCount = i; missingCount < i + threshold; missingCount++) {
-                counter += evts[missingCount][6] == 0 ? 1 : 0;
-            }
-            if (counter == threshold) {
-                if (i > 15) {
-                    double[][] removed = new double[i][];
-                    for (int j = 0; j < i; j++) {
-                        removed[j] = evts[j];
-                    }
-                    return removed;
-                } else {
-                    return new double[0][0];
-                }
-            }
-        }
-        return evts;
-    }
 
     private void sortSpikes(double[][] spk, MiceDay miceDay, double baseOnset, double testOffset, EventType sample, EventType test, EventType response, int sessionIdx, int trialIdx, EventType distrOdor) {
         for (Integer unit : unitSet) {
             int tet = unit >> 8;
             int su = unit & 0xff;
-            System.out.println("Set, tet "+tet+", su "+su);
+//            System.out.println("Set, tet "+tet+", su "+su);
             Trial currentTrial = new DualTrial();
-            currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias);
+            currentTrial.setTrialParameter(sample, test, response, testOffset - baseOnset + FileParser.baseBias + FileParser.rewardBias,baseOnset);
             ((DualTrial) currentTrial).setDistrOdor(distrOdor);
             miceDay.getTetrode(tet)
                     .getSingleUnit(su)

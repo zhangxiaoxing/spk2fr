@@ -337,17 +337,33 @@ public class SingleUnit {
     /*
      For temporary check only
      */
-    public double[][][] getTrialTS(int a_TrialCount, int b_TrialCount, boolean byMatch) {
+    public double[][][] getTrialTS(int a_TrialCount, int b_TrialCount, boolean byLick,boolean isCorrect) {
         double[][] firingTSA = new double[a_TrialCount][];//Time Stamp
         double[][] firingTSB = new double[b_TrialCount][];//Time Stamp
+        double[][] trialStartA = new double[a_TrialCount][];
+        double[][] trialStartB = new double[b_TrialCount][];
+
 
         int trialAIdx = 0;
         int trialBIdx = 0;
+//
+//        for (Trial trial : trialPool) {
+//            if (byLick && trial.isLick()) {
+//                trialAIdx++;
+//            }
+//            if (byLick && !trial.isLick()) {
+//                trialBIdx++;
+//            }
+//        }
+//        System.out.println("REC " + trialAIdx + ", " + trialBIdx);
+//
+//        trialAIdx = 0;
+//        trialBIdx = 0;
 
         for (Trial trial : trialPool) {
-            if (trial.isCorrect()
-                    && ((byMatch && !trial.isMatch())
-                    || (trial.sampleOdorIs(EventType.OdorA) && !byMatch))) {
+
+            if ((byLick && trial.isLick())
+                    || (trial.isCorrect()==isCorrect && trial.sampleOdorIs(EventType.OdorA) && !byLick)) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
@@ -355,11 +371,10 @@ public class SingleUnit {
                     idx++;
                 }
                 firingTSA[trialAIdx] = temp;
+                trialStartA[trialAIdx] = new double[]{trial.getBaseOnset()};
                 trialAIdx++;
-
-            } else if (trial.isCorrect()
-                    && ((byMatch && trial.isMatch())
-                    || (trial.sampleOdorIs(EventType.OdorB) && !byMatch))) {
+            } else if ((byLick && !trial.isLick())
+                    || (trial.isCorrect()==isCorrect && trial.sampleOdorIs(EventType.OdorB) && !byLick)) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
@@ -367,12 +382,13 @@ public class SingleUnit {
                     idx++;
                 }
                 firingTSB[trialBIdx] = temp;
+                trialStartB[trialBIdx] = new double[]{trial.getBaseOnset()};
                 trialBIdx++;
             }
         }
 //        Collections.sort(firingTS);
 
-        return new double[][][]{firingTSA, firingTSB};
+        return new double[][][]{firingTSA, firingTSB, trialStartA, trialStartB};
     }
 
     class GetType {
@@ -452,10 +468,14 @@ public class SingleUnit {
                     break;
                 case "shuffle":
                 case "shuffleall":
-                case "shufflez":
-                case "shuffletest":
-                case "shuffletestz":
                     processor = new ProcessorShuffle(type.toLowerCase().endsWith("z"), !type.toLowerCase().contains("test"), type.toLowerCase().contains("all"));
+                    break;
+                case "lick":
+                case "lickall":
+                case "lickerror":
+                case "lickz":
+                case "lickallz":
+                    processor = new ProcessorLick(type.toLowerCase().contains("all"), type.toLowerCase().contains("error"), type.toLowerCase().endsWith("z"));
                     break;
                 default:
                     System.out.println(type + ": Unknown Processor Type");

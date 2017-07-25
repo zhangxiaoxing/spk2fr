@@ -69,42 +69,26 @@ public class MiceDay {
 //        }
 //
 //    }
-    public int countCorrectTrialByOdor(int odorPosition, EventType odor) {
-        int count = 0;
+    public int[] countCorrectErrorTrialByOdor(int odorPosition, EventType odor) {
+        int[] count = new int[] {0,0};
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
 
                 if (trial[odorPosition] == odor && (trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection)) {
-                    count++;
+                    count[0]++;
+                }else if(trial[odorPosition] == odor){
+                    count[1]++;
                 }
             }
         }
         return count;
     }
 
-    public static enum CorrectType{
-        CORRECT,ALL,ERROR
-    }
-
-    public int countTrialByMatch(EventType isMatch, CorrectType correct) {
+    public int countTrialByLick(boolean isLick) {
         int count = 0;
         for (ArrayList<EventType[]> session : behaviorSessions) {
             for (EventType[] trial : session) {
-                boolean matchCorrect=false;
-                switch (correct){
-                    case ALL:
-                        matchCorrect=true;
-                        break;
-                    case CORRECT:
-                        matchCorrect=trial[2] == EventType.Hit || trial[2] == EventType.CorrectRejection;
-                        break;
-                    case ERROR:
-                        matchCorrect=trial[2] == EventType.Miss || trial[2] == EventType.FalseAlarm;
-                        break;
-                }
-                
-                if ((trial[0] == trial[1]) == (isMatch == EventType.MATCH)
-                        && matchCorrect) {
+                if ((trial[2] == EventType.Hit || trial[2] == EventType.FalseAlarm) == isLick) {
                     count++;
                 }
             }

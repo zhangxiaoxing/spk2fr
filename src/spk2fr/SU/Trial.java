@@ -18,8 +18,9 @@ public class Trial {
     private EventType testOdor; //^^
     private EventType response;// 0=hit,1=miss;2=cr,3=false;
     private boolean isSet = false;
-    ArrayList<Double> spks = new ArrayList<>();
-    double trialLength;
+    private ArrayList<Double> spks = new ArrayList<>();
+    private double trialLength;
+    private double baseOnset;
 
     double[] fr100msBin;
 
@@ -31,7 +32,7 @@ public class Trial {
         return isSet;
     }
 
-    public void setTrialParameter(EventType sampleOdor, EventType testOdor, EventType response, double trialLength) {
+    public void setTrialParameter(EventType sampleOdor, EventType testOdor, EventType response, double trialLength, double baseOnset) {
         this.trialLength = trialLength;
         if ((sampleOdor != EventType.OdorA && sampleOdor != EventType.OdorB)
                 || (testOdor != EventType.OdorA && testOdor != EventType.OdorB)) {
@@ -40,6 +41,7 @@ public class Trial {
         this.sampleOdor = sampleOdor;
         this.testOdor = testOdor;
         this.response = response;
+        this.baseOnset = baseOnset;
 
         isSet = true;
     }
@@ -67,8 +69,18 @@ public class Trial {
     public boolean isCorrect() {
         return response == EventType.CorrectRejection || response == EventType.Hit;
     }
-    
-    public boolean isMatch(){
-        return sampleOdor==testOdor;
+
+    public boolean isLick() {
+        return response == EventType.FalseAlarm || response == EventType.Hit;
     }
+
+    public boolean isMatch() {
+        return sampleOdor == testOdor;
+    }
+
+    public double getBaseOnset() {
+        return baseOnset;
+    }
+    
+    
 }

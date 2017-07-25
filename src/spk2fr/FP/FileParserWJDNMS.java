@@ -35,6 +35,9 @@ public class FileParserWJDNMS extends FileParser {
         ArrayList<EventType[]> behaviorSession = new ArrayList<>();
 
         int sessionIdx = 0;
+        ///If need to remove later trials with no lick ////
+//        evts=removeMissingTrials(evts);
+        //////////////////////////////////////////////////
         for (double[] evtDouble : evts) {
 
             EventType firstOdor = evtDouble[2] < 1.5 ? EventType.OdorA : EventType.OdorB;

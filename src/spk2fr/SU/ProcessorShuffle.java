@@ -6,6 +6,7 @@
 package spk2fr.SU;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import spk2fr.EventType;
 
@@ -36,13 +37,17 @@ public class ProcessorShuffle extends Processor {
                 }
             }
         } else {
+//            int[] count={0,0};
             for (Trial trial : trialPool) {
                 if (ThreadLocalRandom.current().nextBoolean() && trial.isCorrect()) {
                     typeAPool.add(trial);
+//                    count[trial.isMatch()?1:0]++;
                 } else if (trial.isCorrect()) {
                     typeBPool.add(trial);
+//                    count[trial.isMatch()?1:0]++;
                 }
             }
+//            System.out.println(""+count[0]+"\t"+count[1]);
         }
     }
 
