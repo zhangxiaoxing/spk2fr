@@ -21,7 +21,7 @@ public abstract class FileParser {
 
     public static final int baseBias = 0;
     public static final int rewardBias = 5;
-    HashSet<Integer> unitSet = new HashSet<>();
+    protected HashSet<Integer> unitSet = new HashSet<>();
 
     public abstract MiceDay processFile(double[][] evts, double[][] spk);
 

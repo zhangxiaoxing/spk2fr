@@ -11,6 +11,7 @@ import java.util.HashMap;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import spk2fr.ClassifyType;
 import spk2fr.EventType;
+import spk2fr.MiceDay;
 
 /**
  *
@@ -125,16 +126,17 @@ public class SingleUnit {
     /*
      SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
      */
-    public double[][] getSampleFR(spk2fr.MiceDay miceday, String type, float[] bin, int[][] sampleCountIn, int repeatCount) {  //firing rate, baseline assumed to be 1s
+    public double[][] getSampleFR(spk2fr.MiceDay miceday, String groupBy, float[] bin, int[][] sampleCountIn, int repeatCount) {  //firing rate, baseline assumed to be 1s
 
-        Processor pr = new GetType(type).getProcessor();
+        Processor pr = new GetType(groupBy).getProcessor();
 
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> typeAPool = pr.getTypeAPool();
         ArrayList<Trial> typeBPool = pr.getTypeBPool();
         int typeATrialCount = typeAPool.size();
         int typeBTrialCount = typeBPool.size();
-        int[][] sampleCount = reduceSampleIfNecessary(sampleCountIn, typeATrialCount, typeBTrialCount, repeatCount);
+        int[][] sampleCount = new int[][]{
+            reduceSampleIfNecessary(sampleCountIn[0], typeATrialCount), reduceSampleIfNecessary(sampleCountIn[1], typeBTrialCount)};
         if (null == sampleCount || typeATrialCount < 1 || typeBTrialCount < 1) {
             if (discardLackingTrials) {
                 return null;
@@ -160,10 +162,10 @@ public class SingleUnit {
 //if(typeATrialCount<40)
 //        System.out.println(typeATrialCount+","+Arrays.toString(sampleCount[0])+","+typeBTrialCount+","+Arrays.toString(sampleCount[1])); 
         for (int repeat = 0; repeat < repeatCount; repeat++) {
-            int[] aPerm = rng.nextPermutation(typeATrialCount, sumSampleCount(sampleCount, 0));
-            int[] bPerm = rng.nextPermutation(typeBTrialCount, sumSampleCount(sampleCount, 1));
-            ArrayList<ArrayList<Double>> psthA = genPSTH(sampleCount, 0, aPerm, typeAPool);
-            ArrayList<ArrayList<Double>> psthB = genPSTH(sampleCount, 1, bPerm, typeBPool);
+            int[] aPerm = rng.nextPermutation(typeATrialCount, Arrays.stream(sampleCount[0]).sum());
+            int[] bPerm = rng.nextPermutation(typeBTrialCount, Arrays.stream(sampleCount[1]).sum());
+            ArrayList<ArrayList<Double>> psthA = genPSTH(sampleCount[0], aPerm, typeAPool);
+            ArrayList<ArrayList<Double>> psthB = genPSTH(sampleCount[1], bPerm, typeBPool);
 
             int binCount = Math.round((binEnd - binStart) / binSize);
             ArrayList<double[]> binnedA = genBinned(psthA, binCount, binStart, binSize, unitFR);
@@ -181,6 +183,62 @@ public class SingleUnit {
                 }
             }
             normalized[normalized.length - 1] = getPerf(sampleCount, aPerm, bPerm, typeAPool, typeBPool);
+            samples[repeat] = normalized;
+        }
+//        System.out.println("normal "+samples[0].length);
+        return samples;
+
+    }
+
+    public double[][] getOneSampleFR(MiceDay miceday, float[] binning, int[] sampleCountIn, int repeatCount,String criteria) {  //firing rate, baseline assumed to be 1s
+
+        ProcessorWOClassify pr = new ProcessorWOClassify(
+                criteria.toLowerCase().contains("z"), 
+                criteria.toLowerCase().contains("error"),
+                criteria.toLowerCase().contains("all"));
+
+        pr.fillPoolsByType(this.trialPool);
+        ArrayList<Trial> trialPool = pr.getTrialPool();
+        int[] sampleCount = reduceSampleIfNecessary(sampleCountIn, trialPool.size());
+        if (null == sampleCount || trialPool.size() < 1) {
+            if (discardLackingTrials) {
+                return null;
+            } else {
+                double[][] samples = new double[repeatCount][Math.round((binning[2] - binning[0]) / binning[1]) * 2];
+                for (double[] row : samples) {
+                    Arrays.fill(row, 65535d);
+                }
+                return samples;
+            }
+        }
+        double[][] samples = new double[repeatCount][];
+
+        double[] stats = pr.getBaselineStats(this.trialPool);
+        double meanBaseFR = stats[0];
+        double stdBaseFR = stats[1];
+        RandomDataGenerator rng = new RandomDataGenerator();
+
+        float binStart = binning[0];
+        float binSize = binning[1];
+        float binEnd = binning[2];
+        float unitFR = 1f / binSize;
+//if(typeATrialCount<40)
+//        System.out.println(typeATrialCount+","+Arrays.toString(sampleCount[0])+","+typeBTrialCount+","+Arrays.toString(sampleCount[1])); 
+        for (int repeat = 0; repeat < repeatCount; repeat++) {
+            int[] perm = rng.nextPermutation(trialPool.size(), Arrays.stream(sampleCount).sum());
+            ArrayList<ArrayList<Double>> psth = genPSTH(sampleCount, perm, trialPool);
+
+            int binCount = Math.round((binEnd - binStart) / binSize);
+            ArrayList<double[]> binned = genBinned(psth, binCount, binStart, binSize, unitFR);
+
+            double[] normalized = new double[binCount * binned.size()];
+            for (int i = 0; i < binned.size(); i++) {
+                for (int j = 0; j < binned.get(i).length; j++) {
+                    normalized[j + i * binCount] = ((binned.get(i)[j] / sampleCount[i]) - meanBaseFR) / stdBaseFR;
+                }
+            }
+
+//            normalized[normalized.length - 1] = getPerf(sampleCount, perm, bPerm, typeAPool, typeBPool);
             samples[repeat] = normalized;
         }
 //        System.out.println("normal "+samples[0].length);
@@ -209,17 +267,17 @@ public class SingleUnit {
         return binned.toArray(new double[binned.size()][]);
     }
 
-    ArrayList<ArrayList<Double>> genPSTH(final int[][] sampleCount, final int grp, final int[] perm, final ArrayList<Trial> trialPool) {
+    ArrayList<ArrayList<Double>> genPSTH(final int[] sampleCount, final int[] perm, final ArrayList<Trial> trialPool) {
         ArrayList<ArrayList<Double>> psth = new ArrayList<>();
         int currSampCount = 0;
-        for (int i = 0; i < sampleCount[grp].length; i++) {
+        for (int i = 0; i < sampleCount.length; i++) {
             ArrayList<Double> oneSample = new ArrayList<>();
-            for (int j = currSampCount; j < currSampCount + sampleCount[grp][i]; j++) {
+            for (int j = currSampCount; j < currSampCount + sampleCount[i]; j++) {
                 if (perm[j] < trialPool.size()) {
                     oneSample.addAll(trialPool.get(perm[j]).getSpikesList());
                 }
             }
-            currSampCount += sampleCount[grp][i];
+            currSampCount += sampleCount[i];
             psth.add(oneSample);
         }
         return psth;
@@ -271,40 +329,35 @@ public class SingleUnit {
         }
     }
 
-    int sumSampleCount(int[][] samples, int grp) {
-        int count = 0;
-        for (int oneGrp : samples[grp]) {
-            count += oneGrp;
-        }
-        return count;
-    }
-
-    int[][] reduceSampleIfNecessary(final int[][] sampleCount, int typeATrialCount, int typeBTrialCount, int repeat) {
-        int[][] local = new int[sampleCount.length][sampleCount[0].length];
-        for (int j = 0; j < 2; j++) {
-            int requiredCount = sumSampleCount(sampleCount, j);
-            int typeTrialCount = j == 0 ? typeATrialCount : typeBTrialCount;
-            if (requiredCount > typeTrialCount) {
-                if (sampleCount[j].length < 3 && sampleCount[j][1] < 2) {//Decoding
-                    local[j][0] = typeTrialCount - sampleCount[j][1];
-                    local[j][1] = sampleCount[j][1];
-                } else {
-                    local[j][0] = typeTrialCount;
-                    for (int i = sampleCount[j].length - 1; i > 0; i--) {
-                        local[j][i] = sampleCount[j][i] * typeTrialCount / requiredCount;
-                        local[j][0] -= local[j][i];
-                    }
-                }
-                if (local[j][0] < 1) {
-                    System.out.println("Not Enough Trial!");
-                    return null;
-                }
+//    int sumSampleCount(int[][] samples, int grp) {
+//        int count = 0;
+//        for (int oneGrp : samples[grp]) {
+//            count += oneGrp;
+//        }
+//        return count;
+//    }
+    int[] reduceSampleIfNecessary(final int[] sampleCount, int typeTrialCount) {
+        int[] local = new int[sampleCount.length];
+        int requiredCount = Arrays.stream(sampleCount).sum();
+        if (requiredCount > typeTrialCount) {
+            if (sampleCount.length < 3 && sampleCount[1] < 2) {//Decoding
+                local[0] = typeTrialCount - sampleCount[1];
+                local[1] = sampleCount[1];
             } else {
-                local[j] = Arrays.copyOf(sampleCount[0], 2);
-
+                local[0] = typeTrialCount;
+                for (int i = sampleCount.length - 1; i > 0; i--) {
+                    local[i] = sampleCount[i] * typeTrialCount / requiredCount;
+                    local[0] -= local[i];
+                }
             }
+            if (local[0] < 1) {
+                System.out.println("Not Enough Trial!");
+                return null;
+            }
+            return local;
+        } else {
+            return sampleCount;
         }
-        return local;
     }
 
 //    /*
@@ -337,12 +390,11 @@ public class SingleUnit {
     /*
      For temporary check only
      */
-    public double[][][] getTrialTS(int a_TrialCount, int b_TrialCount, boolean byLick,boolean isCorrect) {
+    public double[][][] getTrialTS(int a_TrialCount, int b_TrialCount, boolean byLick, boolean isCorrect) {
         double[][] firingTSA = new double[a_TrialCount][];//Time Stamp
         double[][] firingTSB = new double[b_TrialCount][];//Time Stamp
         double[][] trialStartA = new double[a_TrialCount][];
         double[][] trialStartB = new double[b_TrialCount][];
-
 
         int trialAIdx = 0;
         int trialBIdx = 0;
@@ -363,7 +415,7 @@ public class SingleUnit {
         for (Trial trial : trialPool) {
 
             if ((byLick && trial.isLick())
-                    || (trial.isCorrect()==isCorrect && trial.sampleOdorIs(EventType.OdorA) && !byLick)) {
+                    || (trial.isCorrect() == isCorrect && trial.sampleOdorIs(EventType.OdorA) && !byLick)) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {
@@ -374,7 +426,7 @@ public class SingleUnit {
                 trialStartA[trialAIdx] = new double[]{trial.getBaseOnset()};
                 trialAIdx++;
             } else if ((byLick && !trial.isLick())
-                    || (trial.isCorrect()==isCorrect && trial.sampleOdorIs(EventType.OdorB) && !byLick)) {
+                    || (trial.isCorrect() == isCorrect && trial.sampleOdorIs(EventType.OdorB) && !byLick)) {
                 double[] temp = new double[trial.getSpikesList().size()];
                 int idx = 0;
                 for (Double d : trial.getSpikesList()) {

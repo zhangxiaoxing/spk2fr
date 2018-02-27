@@ -43,7 +43,6 @@ public class MiceDay {
                     }
                 }
             }
-
         }
         return false;
     }

@@ -53,8 +53,8 @@ public class Para {
 
         final String evtFile;
         final String spkFile;
-        final String classify;
-        final String type;
+        final String spkThreshold;
+        final String groupBy;
         final float binStart;
         final float binSize;
         final float binEnd;
@@ -62,11 +62,11 @@ public class Para {
         final int repeats;
 
         public ParSpk2fr(String evtFile, String spkFile,
-                String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
+                String spkThreshold, String groupBy, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
             this.evtFile = evtFile;
             this.spkFile = spkFile;
-            this.classify = classify;
-            this.type = type;
+            this.spkThreshold = spkThreshold;
+            this.groupBy = groupBy;
             this.binStart = binStart;
             this.binSize = binSize;
             this.binEnd = binEnd;
@@ -79,15 +79,15 @@ public class Para {
             Spk2fr s2f = new Spk2fr();
             s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
-            s2f.setLeastFR(classify);
+            s2f.setLeastFR(spkThreshold);
             
             
             if (format.toLowerCase().equals("wj")) {
                 return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "TrialInfo"), MatFile.getFile(spkFile, "Spk"), format),
-                        type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
+                        groupBy, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
             } else {
                 return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "evts"), MatFile.getFile(spkFile, "data"), format),
-                        type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
+                        groupBy, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
             }
         }
 
