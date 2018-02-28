@@ -18,7 +18,7 @@ import spk2fr.SU.SingleUnit;
  */
 public class Spk2fr {
 
-    protected int wellTrainOnly = 0;//0=not well-trained; 1=well-trained; 2=include all;
+//    protected boolean wellTrainOnly;//used to be 0=not well-trained; 1=well-trained; 2=include all;now only boolean
     protected ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
     protected double refracRatio = 0.0015;
     private ArrayList<int[]> keyIdx;
@@ -97,8 +97,8 @@ public class Spk2fr {
 
     public ComboReturnType getSampleFringRate(Data data, String type, float[] bin, int[][] sampleSize, int repeats) {
         MiceDay miceDay = parseEvts(data);
-        if (miceDay.getTetrodes().size() < 1
-                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
+        if (miceDay.getTetrodes().size() < 1){
+//                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
             return null;
         }
         ArrayList<double[][]> frs = new ArrayList<>();
@@ -120,8 +120,8 @@ public class Spk2fr {
 
     public ComboReturnType getAllFiringRate(Data data, String type, float[] bin, boolean isS1) {
         MiceDay miceDay = parseEvts(data);
-        if (miceDay.getTetrodes().size() < 1
-                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
+        if (miceDay.getTetrodes().size() < 1){
+//                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
             return null;
         }
         ArrayList<double[][]> frs = new ArrayList<>();
@@ -178,9 +178,9 @@ public class Spk2fr {
         return fileList;
     }
 
-    public void setWellTrainOnly(int wellTrain) {
-        this.wellTrainOnly = wellTrain;
-    }
+//    public void setWellTrainOnly(boolean wellTrain) {
+//        this.wellTrainOnly = wellTrain;
+//    }
 
     public void setLeastFR(String type) {
         if (type.equalsIgnoreCase("Average2Hz")) {

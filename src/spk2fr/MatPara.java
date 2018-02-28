@@ -20,14 +20,14 @@ public class MatPara {
     String format = "";
 
     final ExecutorService pool;
-    final int wellTrainOnly;
+    final boolean wellTrainOnly;
     final double refracRatio;
 
     public MatPara() {
-        this(2, 0.0015);
+        this(false, 0.0015);
     }
 
-    public MatPara(int wellTrain, double refracRatio) {
+    public MatPara(boolean wellTrain, double refracRatio) {
         int cpus = Runtime.getRuntime().availableProcessors();
         if (Runtime.getRuntime().maxMemory() / 1024 / 1024 < 8192) {
             cpus = 1;
@@ -118,16 +118,16 @@ public class MatPara {
                     evt = MatFile.getFile(trialF, "TrialInfo");
                 }
             }
-//            if(wellTrainOnly==1){
-//                evt=wellTrainedTrials(evt);
-//            }
+            if(wellTrainOnly){
+                evt=MatFile.wellTrainedTrials(evt);
+            }
             if (spk.length < 100 || evt.length < 20) {
                 System.out.println("Error Parsing File " + trialF);
                 return new ComboReturnType(new double[0][0][0], new int[0][0]);
             }
 
             Spk2fr s2f = new Spk2fr();
-            s2f.setWellTrainOnly(wellTrainOnly);
+//            s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(classify);
 
@@ -142,36 +142,5 @@ public class MatPara {
 
     }
 
-    double[][] wellTrainedTrials(double[][] in) {
-        if (in.length < 40) {
-            return new double[0][0];
-        }
-        boolean[] correct = new boolean[in.length];
-        boolean[] wellTrained = new boolean[in.length];
-        for (int i = 0; i < in.length; i++) {
-            if ((in[i][2] != in[i][3] && in[i][5] == 1.0d)
-                    || (in[i][2] == in[i][3] && in[i][5] == 0.0d)) {
-                correct[i] = true;
-            }
-        }
 
-        for (int i = 40; i < in.length; i++) {
-            int sum = 0;
-            for (int j = i - 40; j < i; j++) {
-                sum += correct[j] ? 1 : 0;
-            }
-            if (sum > 31) {
-                for (int j = i - 40; j < i; j++) {
-                    wellTrained[j] = true;
-                }
-            }
-        }
-        LinkedList<double[]> rtn = new LinkedList<>();
-        for (int i = 0; i < in.length; i++) {
-            if (wellTrained[i]) {
-                rtn.add(in[i]);
-            }
-        }
-        return rtn.toArray(new double[rtn.size()][]);
-    }
 }

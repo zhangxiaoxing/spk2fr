@@ -22,14 +22,14 @@ public class Para {
     String format = "";
 
     final ExecutorService pool;
-    final int wellTrainOnly;
+    final boolean wellTrainOnly;
     final double refracRatio;
 
     public Para() {
-        this(2, 0.0015);
+        this(false, 0.0015);
     }
 
-    public Para(int wellTrain, double refracRatio) {
+    public Para(boolean wellTrain, double refracRatio) {
         int cpus = Runtime.getRuntime().availableProcessors();
         if (Runtime.getRuntime().maxMemory() / 1024 / 1024 < 8192) {
             cpus = 1;
@@ -77,16 +77,21 @@ public class Para {
         @Override
         public ComboReturnType call() throws Exception {
             Spk2fr s2f = new Spk2fr();
-            s2f.setWellTrainOnly(wellTrainOnly);
+//            s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
             s2f.setLeastFR(spkThreshold);
-            
-            
+
             if (format.toLowerCase().equals("wj")) {
-                return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "TrialInfo"), MatFile.getFile(spkFile, "Spk"), format),
+                return s2f.getSampleFringRate(s2f.buildData(
+                        MatFile.wellTrainedTrials(MatFile.getFile(evtFile, "TrialInfo"), wellTrainOnly),
+                        MatFile.getFile(spkFile, "Spk"),
+                        format),
                         groupBy, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
             } else {
-                return s2f.getSampleFringRate(s2f.buildData(MatFile.getFile(evtFile, "evts"), MatFile.getFile(spkFile, "data"), format),
+                return s2f.getSampleFringRate(s2f.buildData(
+                        MatFile.wellTrainedTrials(MatFile.getFile(evtFile, "evts"), wellTrainOnly),
+                        MatFile.getFile(spkFile, "data"),
+                        format),
                         groupBy, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
             }
         }
