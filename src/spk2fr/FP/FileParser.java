@@ -86,28 +86,4 @@ public abstract class FileParser {
         }
     }
 
-    protected double[][] removeMissingTrials(double[][] evts) {
-        int lickPos = evts[0].length - 2;
-        int threshold = 10;
-        for (int i = 0; i < evts.length - threshold; i++) {
-            int counter = 0;
-            for (int missingCount = i; missingCount < i + threshold; missingCount++) {
-                counter += evts[missingCount][lickPos] == 0 ? 1 : 0;
-            }
-            if (counter >= threshold) {
-                if (i > 15) {
-//                    System.out.println("Before, "+evts.length+", After, "+i);
-                    double[][] removed = new double[i][];
-                    for (int j = 0; j < i; j++) {
-                        removed[j] = evts[j];
-                    }
-                    return removed;
-                } else {
-                    return new double[0][0];
-                }
-            }
-        }
-        return evts;
-    }
-
 }

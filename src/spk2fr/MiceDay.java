@@ -27,25 +27,25 @@ public class MiceDay {
         this.recordingLength = recordingLength;
     }
 
-    public boolean isWellTrained() {
-        ArrayList<Boolean> results = new ArrayList<>();
-        for (ArrayList<EventType[]> session : behaviorSessions) {
-            for (EventType[] evt : session) {
-                results.add(evt[2] == EventType.Hit || evt[2] == EventType.CorrectRejection);
-                int sumTrial = results.size();
-                if (sumTrial >= 40) {
-                    int count = 0;
-                    for (int i = sumTrial - 1; i > sumTrial - 40; i--) {
-                        count += results.get(i) ? 1 : 0;
-                        if (count > 31) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
+//    public boolean isWellTrained() {
+//        ArrayList<Boolean> results = new ArrayList<>();
+//        for (ArrayList<EventType[]> session : behaviorSessions) {
+//            for (EventType[] evt : session) {
+//                results.add(evt[2] == EventType.Hit || evt[2] == EventType.CorrectRejection);
+//                int sumTrial = results.size();
+//                if (sumTrial >= 40) {
+//                    int count = 0;
+//                    for (int i = sumTrial - 1; i > sumTrial - 40; i--) {
+//                        count += results.get(i) ? 1 : 0;
+//                        if (count > 31) {
+//                            return true;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     public Tetrode getTetrode(int idx) {
         if (!tetrodes.containsKey(idx)) {
