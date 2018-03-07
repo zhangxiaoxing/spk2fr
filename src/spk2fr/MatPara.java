@@ -117,10 +117,10 @@ public class MatPara {
                     evt = MatFile.getFile(trialF, "TrialInfo");
                 }
             }
-            if(wellTrainOnly){
-                evt=MatFile.wellTrainedTrials(evt);
-            }
-            if (spk.length < 100 || evt.length < 20) {
+
+            evt = MatFile.wellTrainedTrials(evt, MatPara.this.wellTrainOnly);
+
+            if (spk.length < 100 || evt.length < 10) {
                 System.out.println("Error Parsing File " + trialF);
                 return new ComboReturnType(new double[0][0][0], new int[0][0]);
             }
@@ -140,6 +140,5 @@ public class MatPara {
         }
 
     }
-
 
 }
