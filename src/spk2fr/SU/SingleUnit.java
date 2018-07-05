@@ -190,10 +190,10 @@ public class SingleUnit {
 
     }
 
-    public double[][] getOneSampleFR(MiceDay miceday, float[] binning, int[] sampleCountIn, int repeatCount,String criteria) {  //firing rate, baseline assumed to be 1s
+    public double[][] getOneSampleFR(MiceDay miceday, float[] binning, int[] sampleCountIn, int repeatCount, String criteria) {  //firing rate, baseline assumed to be 1s
 
         ProcessorWOClassify pr = new ProcessorWOClassify(
-                criteria.toLowerCase().contains("z"), 
+                criteria.toLowerCase().contains("z"),
                 criteria.toLowerCase().contains("error"),
                 criteria.toLowerCase().contains("all"));
 
@@ -246,9 +246,9 @@ public class SingleUnit {
 
     }
 
-    public double[][] getAllFR(spk2fr.MiceDay miceday, String type, float[] bin, boolean isS1) {  //firing rate, baseline assumed to be 1s
+    public double[][] getAllFR(spk2fr.MiceDay miceday, String groupBy, float[] bin, boolean isS1) {  //firing rate, baseline assumed to be 1s
 
-        Processor pr = new GetType(type).getProcessor();
+        Processor pr = new GetType(groupBy).getProcessor();
 
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> pool = isS1 ? pr.getTypeAPool() : pr.getTypeBPool();
@@ -482,7 +482,12 @@ public class SingleUnit {
                 case "sampleerror":
                 case "sampleerrorz":
                 case "sampleall":
-                    processor = new ProcessorSample(type.toLowerCase().endsWith("z"), type.toLowerCase().contains("error"), type.toLowerCase().contains("all"));
+                case "sampleallz":
+                case "sampleincerror":
+                    processor = new ProcessorSample(
+                            type.toLowerCase().endsWith("z"),
+                            type.toLowerCase().contains("error"),
+                            type.toLowerCase().contains("all") || type.toLowerCase().contains("incerror"));
                     break;
                 case "test":
                 case "testz":
@@ -498,17 +503,26 @@ public class SingleUnit {
                 case "distrgoz":
                 case "distrgo":
                 case "distrgoincincorr":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, type.toLowerCase().endsWith("z"), type.toLowerCase().endsWith("incorr"));
+                case "distrgoincerror":
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, 
+                            type.toLowerCase().endsWith("z"), 
+                            type.toLowerCase().endsWith("incorr") || type.toLowerCase().endsWith("incerror"));
                     break;
                 case "distrnogoz":
                 case "distrnogo":
                 case "distrnogoincincorr":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, type.toLowerCase().endsWith("z"), type.toLowerCase().endsWith("incorr"));
+                case "distrnogoincerror":
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, 
+                            type.toLowerCase().endsWith("z"), 
+                            type.toLowerCase().endsWith("incorr") || type.toLowerCase().endsWith("incerror"));
                     break;
                 case "distrnonez":
                 case "distrnone":
                 case "distrnoneincincorr":
-                    processor = new ProcessorSamplenDistrZ(EventType.NONE, type.toLowerCase().endsWith("z"), type.toLowerCase().endsWith("incorr"));
+                case "distrnoneincerror":
+                    processor = new ProcessorSamplenDistrZ(EventType.NONE, 
+                            type.toLowerCase().endsWith("z"), 
+                            type.toLowerCase().endsWith("incorr") || type.toLowerCase().endsWith("incerror"));
                     break;
                 case "match":
                 case "matchincincorr":
@@ -528,6 +542,9 @@ public class SingleUnit {
                 case "lickz":
                 case "lickallz":
                     processor = new ProcessorLick(type.toLowerCase().contains("all"), type.toLowerCase().contains("error"), type.toLowerCase().endsWith("z"));
+                    break;
+                case "everytrial":
+                    processor = new ProcessorEveryTrial(type.toLowerCase().endsWith("z"), !type.toLowerCase().contains("test"), type.toLowerCase().contains("all"));
                     break;
                 default:
                     System.out.println(type + ": Unknown Processor Type");

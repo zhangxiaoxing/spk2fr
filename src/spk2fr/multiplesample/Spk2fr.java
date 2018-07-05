@@ -21,6 +21,8 @@ import spk2fr.Tetrode;
  */
 public class Spk2fr extends FileParser {
 
+    private ArrayList<int[]> keyIdx;
+
     public double[][] buildTrials(double[] onset, double[] offset, double[] id, double[] lick, double delayLen) {
         int lickIdx = 0;
         delayLen = delayLen + 1;
@@ -111,6 +113,44 @@ public class Spk2fr extends FileParser {
                 }
             }
         }
-        return new ComboReturnType(frs.toArray(new double[frs.size()][][]), keyIdx.toArray(new int[keyIdx.size()][]));
+        ArrayList<double[]> evts = new ArrayList<>();
+        miceDay.getBehaviorSessions().forEach((lst) -> {
+            lst.forEach((evt) -> {
+                evts.add(new double[]{evt[0].ordinal(), evt[1].ordinal(), evt[2].ordinal()});
+            });
+        });
+
+        return new ComboReturnType(frs.toArray(new double[frs.size()][][]),
+                keyIdx.toArray(new int[keyIdx.size()][]),
+                evts.toArray(new double[evts.size()][]));
     }
+
+    public ComboReturnType getAllFiringRate(MiceDay miceDay, float[] bin) {
+        if (miceDay.getTetrodes().size() < 1) {
+            return null;
+        }
+        ArrayList<double[][]> frs = new ArrayList<>();
+        keyIdx = new ArrayList<>();
+        for (Integer tetKey : miceDay.getTetrodeKeys()) {
+            Tetrode tetrode = miceDay.getTetrode(tetKey);
+            for (Integer unitKey : tetrode.getUnitKeys()) {
+                SingleUnit unit = tetrode.getSingleUnit(unitKey);
+                double[][] rtn = unit.getAllFR(miceDay, "everytrial", bin, true);
+                if (null != rtn && rtn.length > 0) {
+                    keyIdx.add(new int[]{tetKey, unitKey});
+                    frs.add(rtn);
+                }
+            }
+        }
+        ArrayList<double[]> evts = new ArrayList<>();
+        miceDay.getBehaviorSessions().forEach((lst) -> {
+            lst.forEach((evt) -> {
+                evts.add(new double[]{evt[0].ordinal(), evt[1].ordinal(), evt[2].ordinal()});
+            });
+        });
+        return new ComboReturnType(frs.toArray(new double[frs.size()][][]),
+                keyIdx.toArray(new int[keyIdx.size()][]),
+                evts.toArray(new double[evts.size()][]));
+    }
+
 }

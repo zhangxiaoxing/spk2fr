@@ -49,9 +49,9 @@ public class MatPara {
         return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, sampleSize, repeats));
     }
 
-    synchronized public Future<ComboReturnType> parGetAllFR(String trialF,
-            String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {//S1: true=odor1, false=odorb
-        return pool.submit(new ParSpk2fr(trialF, classify, type, binStart, binSize, binEnd, isS1));
+    synchronized public Future<ComboReturnType> parGetAllFR(String trialFile,
+            String criteria, String groupBy, float binStart, float binSize, float binEnd, boolean isS1) {//S1: true=odor1, false=odorb
+        return pool.submit(new ParSpk2fr(trialFile, criteria, groupBy, binStart, binSize, binEnd, isS1));
     }
 
     public void setFormat(String format) {
@@ -62,8 +62,8 @@ public class MatPara {
 
         double[][] evt;
         double[][] spk;
-        final String classify;
-        final String type;
+        final String criteria;
+        final String groupBy;
         final float binStart;
         final float binSize;
         final float binEnd;
@@ -76,8 +76,8 @@ public class MatPara {
                 String classify, String type, float binStart, float binSize, float binEnd, int[][] sampleSize, int repeats) {
             this.evt = evt;
             this.spk = spk;
-            this.classify = classify;
-            this.type = type;
+            this.criteria = classify;
+            this.groupBy = type;
             this.binStart = binStart;
             this.binSize = binSize;
             this.binEnd = binEnd;
@@ -93,10 +93,10 @@ public class MatPara {
         }
 
         public ParSpk2fr(String trialF,
-                String classify, String type, float binStart, float binSize, float binEnd, boolean isS1) {
+                String criteria, String groupBy, float binStart, float binSize, float binEnd, boolean isS1) {
 
-            this.classify = classify;
-            this.type = type;
+            this.criteria = criteria;
+            this.groupBy = groupBy;
             this.binStart = binStart;
             this.binSize = binSize;
             this.binEnd = binEnd;
@@ -122,20 +122,20 @@ public class MatPara {
 
             if (spk.length < 100 || evt.length < 10) {
                 System.out.println("Error Parsing File " + trialF);
-                return new ComboReturnType(new double[0][0][0], new int[0][0]);
+                return new ComboReturnType(new double[0][0][0], new int[0][0],new double[0][0]);
             }
 
             Spk2fr s2f = new Spk2fr();
 //            s2f.setWellTrainOnly(wellTrainOnly);
             s2f.setRefracRatio(refracRatio);
-            s2f.setLeastFR(classify);
+            s2f.setLeastFR(criteria);
 
             if (format.toLowerCase().endsWith("allfr")) {
                 return s2f.getAllFiringRate(s2f.buildData(evt, spk, format.substring(0, format.length() - 5)),
-                        type, s2f.setBin(binStart, binSize, binEnd), isS1);
+                        groupBy, s2f.setBin(binStart, binSize, binEnd), isS1);
             }
             return s2f.getSampleFringRate(s2f.buildData(evt, spk, format),
-                    type, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
+                    groupBy, s2f.setBin(binStart, binSize, binEnd), sampleSize, repeats);
 
         }
 

@@ -25,7 +25,7 @@ public abstract class Processor {
     public ArrayList<Trial> getTypeBPool() {
         return typeBPool;
     }
-
+    
     static double[] convert2Stats(double[] baselineTSCount) {
         double[] stats = new double[]{StatUtils.mean(baselineTSCount), Math.sqrt(StatUtils.variance(baselineTSCount))};
         if (stats[0] == 0 && stats[1] == 0) {
