@@ -24,6 +24,8 @@ public class SingleUnit {
     final private ArrayList<Trial> trialPool = new ArrayList<>();
 //    final private ArrayList<Double> spkPool = new ArrayList<>();
     private int unitSPKCount = 0;
+    private double ISIratio;
+    private double avgFR;
 
 //    HashMap<Integer, Trial> trials;
     public SingleUnit() {
@@ -77,7 +79,10 @@ public class SingleUnit {
                 }
             }
         }
-        if (totalSpike < 1 || (double) lowRefracSpike / totalSpike > refracRatio) {
+
+//        System.out.println("DBG ISI "+
+        this.ISIratio = (double) lowRefracSpike / totalSpike;
+        if (totalSpike < 1 || this.ISIratio > refracRatio) {
             return true;
         }
         switch (type) {
@@ -105,7 +110,8 @@ public class SingleUnit {
                 }
                 double avgLength = firedTrialLengthSum / firedTrial;
                 double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
-                return !(spkCount / trialCount / avgLength > fr); //2Hz
+                this.avgFR = (double) spkCount / trialCount / avgLength;
+                return !(this.avgFR > fr); //2Hz
             case BY_AVERAGE2Hz_WHOLETRIAL:
                 return (unitSPKCount / recordingLength) < 2;
 //                return spkPool.size() / (spkPool.get(spkPool.size() - 1) - spkPool.get(0)) < 2;
@@ -417,23 +423,34 @@ public class SingleUnit {
             if ((byLick && trial.isLick())
                     || (trial.isCorrect() == isCorrect && trial.sampleOdorIs(EventType.OdorA) && !byLick)) {
                 double[] temp = new double[trial.getSpikesList().size()];
-                int idx = 0;
-                for (Double d : trial.getSpikesList()) {
-                    temp[idx] = d;
-                    idx++;
+
+                if (trial.getSpikesList().size() > 0) {
+                    int idx = 0;
+                    for (Double d : trial.getSpikesList()) {
+                        temp[idx] = d;
+                        idx++;
+                    }
+                    firingTSA[trialAIdx] = temp;
+                } else {
+                    temp = new double[]{65535};
+                    firingTSA[trialAIdx] = temp;
                 }
-                firingTSA[trialAIdx] = temp;
                 trialStartA[trialAIdx] = new double[]{trial.getBaseOnset()};
                 trialAIdx++;
             } else if ((byLick && !trial.isLick())
                     || (trial.isCorrect() == isCorrect && trial.sampleOdorIs(EventType.OdorB) && !byLick)) {
                 double[] temp = new double[trial.getSpikesList().size()];
-                int idx = 0;
-                for (Double d : trial.getSpikesList()) {
-                    temp[idx] = d;
-                    idx++;
+                if (trial.getSpikesList().size() > 0) {
+                    int idx = 0;
+                    for (Double d : trial.getSpikesList()) {
+                        temp[idx] = d;
+                        idx++;
+                    }
+                    firingTSB[trialBIdx] = temp;
+                } else {
+                    temp = new double[]{65535};
+                    firingTSB[trialAIdx] = temp;
                 }
-                firingTSB[trialBIdx] = temp;
                 trialStartB[trialBIdx] = new double[]{trial.getBaseOnset()};
                 trialBIdx++;
             }
@@ -452,7 +469,7 @@ public class SingleUnit {
         }
 
         GetType(String type) {
-//            int[] counts;
+//            System.out.println("DBG TYPE"+type.toLowerCase());
             switch (type.toLowerCase()) {
                 case "matchsample":
                 case "matchsamplez":
@@ -498,30 +515,31 @@ public class SingleUnit {
                     break;
                 case "opsuppress":
                 case "opsuppressz":
+                case "opsuppressallfr":
                     processor = new Processor4OpSuppress(type.toLowerCase().endsWith("z"));
                     break;
                 case "distrgoz":
                 case "distrgo":
                 case "distrgoincincorr":
                 case "distrgoincerror":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorA, 
-                            type.toLowerCase().endsWith("z"), 
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorA,
+                            type.toLowerCase().endsWith("z"),
                             type.toLowerCase().endsWith("incorr") || type.toLowerCase().endsWith("incerror"));
                     break;
                 case "distrnogoz":
                 case "distrnogo":
                 case "distrnogoincincorr":
                 case "distrnogoincerror":
-                    processor = new ProcessorSamplenDistrZ(EventType.OdorB, 
-                            type.toLowerCase().endsWith("z"), 
+                    processor = new ProcessorSamplenDistrZ(EventType.OdorB,
+                            type.toLowerCase().endsWith("z"),
                             type.toLowerCase().endsWith("incorr") || type.toLowerCase().endsWith("incerror"));
                     break;
                 case "distrnonez":
                 case "distrnone":
                 case "distrnoneincincorr":
                 case "distrnoneincerror":
-                    processor = new ProcessorSamplenDistrZ(EventType.NONE, 
-                            type.toLowerCase().endsWith("z"), 
+                    processor = new ProcessorSamplenDistrZ(EventType.NONE,
+                            type.toLowerCase().endsWith("z"),
                             type.toLowerCase().endsWith("incorr") || type.toLowerCase().endsWith("incerror"));
                     break;
                 case "match":
@@ -551,6 +569,10 @@ public class SingleUnit {
                     throw new IllegalArgumentException("Unknown Processor Type");
             }
         }
+    }
+
+    public double[] getCriteria() {
+        return new double[]{avgFR, this.ISIratio};
     }
 
 }

@@ -8,6 +8,7 @@ package spk2fr;
 import com.jmatio.io.MatFileReader;
 import com.jmatio.types.MLArray;
 import com.jmatio.types.MLDouble;
+import java.io.File;
 import java.util.LinkedList;
 
 /**
@@ -35,7 +36,7 @@ public class MatFile {
         }
 
         int lickPos = in[0].length - 2;
-        int samplePos=in[0].length == 8 ? 0 : 2;
+        int samplePos = in[0].length == 8 ? 0 : 2;
         int testPos = in[0].length == 8 ? 4 : 3;
 
         boolean[] correct = new boolean[in.length];
@@ -73,6 +74,33 @@ public class MatFile {
 
     public static double[][] wellTrainedTrials(double[][] in, boolean wellTrainOnly) {
         return wellTrainOnly ? wellTrainedTrials(in) : in;
+    }
+
+    public static LinkedList<String> buildFileList(String rootPath, String pattern) {
+        LinkedList<String> fileList = new LinkedList<>();
+        if (rootPath == null) {
+            return null;
+        }
+        File root = new File(rootPath);
+        if (!root.exists()) {
+            return null;
+        }
+        File[] list = root.listFiles();
+
+        if (list != null) {
+            for (File f : list) {
+                if (f.isDirectory()) {
+                    fileList.addAll(buildFileList(f.getAbsolutePath(), pattern));
+                } else {
+                    String fPath = f.getAbsolutePath();
+                    if (fPath.contains(pattern)) {
+                        fileList.add(fPath);
+                    }
+                }
+            }
+        }
+
+        return fileList;
     }
 
 }
