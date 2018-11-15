@@ -32,7 +32,10 @@ public class BuildFileList {
                 } else {
                     String fPath = f.getAbsolutePath();
                     if (fPath.contains("_Event.mat")) {
-                        String spktsPath = fPath.replaceAll("_\\d{6}_\\d{6}_Event.mat", "_Spk_TS.mat");
+                        String spktsPath = fPath.replaceAll("_\\d{6}_\\d{6}_Event.mat", "_Spk.mat");
+                        if (spktsPath.equals(fPath)){
+                            spktsPath = fPath.replaceAll("_Event.mat", "_Spk.mat");
+                        }
 //                        System.out.println(fPath + ", " + spktsPath);
                         if(new File(spktsPath).exists()){
                             fileList.add(new String[]{spktsPath,fPath});
