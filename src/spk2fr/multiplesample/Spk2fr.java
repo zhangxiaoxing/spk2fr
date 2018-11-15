@@ -8,6 +8,7 @@ package spk2fr.multiplesample;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import spk2fr.ClassifyType;
 import spk2fr.ComboReturnType;
 import spk2fr.EventType;
 import spk2fr.FP.FileParser;
@@ -21,9 +22,11 @@ import spk2fr.Tetrode;
  */
 public class Spk2fr extends FileParser {
 
+    protected ClassifyType leastFR = ClassifyType.BY_AVERAGE2Hz;
+    protected double refracRatio = 0.0015;
     private ArrayList<int[]> keyIdx;
 
-    public double[][] buildTrials(double[] onset, double[] offset, double[] id, double[] lick, double delayLen) {
+    public double[][] buildTrials(double[] onset, double[] offset, double[] id, double[] lick, double delayLen, double[] test) {
         int lickIdx = 0;
         delayLen = delayLen + 1;
         LinkedList<double[]> trials = new LinkedList<>();
@@ -32,8 +35,23 @@ public class Spk2fr extends FileParser {
             return null;
         }
         for (int i = 0; i < onset.length - 1; i++) {
+            boolean iIsTest = false;
+            boolean nextIsTest=false;
+            for (double t : test) {
+                if (t == id[i]) {
+                    iIsTest = true;
+                }
+                if (t==id[i+1]){
+                    nextIsTest=true;
+                }
+            }
+            if (iIsTest || !nextIsTest) {
+                continue;
+            }
+
+
             if ((onset[i + 1] - onset[i]) < delayLen + 0.5 && (onset[i + 1] - onset[i]) > delayLen - 0.5) {
-                double[] oneTrial = new double[]{onset[i], onset[i + 1], id[i], id[i + 1], 0, 0};
+                double[] oneTrial = new double[]{onset[i], onset[i + 1], id[i], id[i + 1], 0, 0, 0, 0, 0, offset[i]};
                 while (lickIdx < lick.length && lick[lickIdx] < offset[i + 1] + 1) {
                     if (lick[lickIdx] > offset[i + 1]) {
                         oneTrial[4] = 1;
@@ -93,6 +111,14 @@ public class Spk2fr extends FileParser {
         poolTrials(miceDay);
         miceDay.setBehaviorSessions(behaviorSessions);
         return miceDay;
+    }
+
+    public MiceDay processFile(double[][] evts, double[][] spk, boolean isRemovingSparse) {
+        if (isRemovingSparse) {
+            return (processFile(evts, spk)).removeSparseFiringUnits(leastFR, refracRatio);
+        } else {
+            return (processFile(evts, spk));
+        }
     }
 
     public ComboReturnType getSampleFiringRate(MiceDay miceDay, float[] binsDesc, int[] sampleSize, int repeats, String criteria) {
