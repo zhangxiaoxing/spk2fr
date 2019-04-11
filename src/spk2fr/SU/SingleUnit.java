@@ -53,7 +53,7 @@ public class SingleUnit {
 
     public void setTrial(int sessionIdx, int trialIdx, Trial t) {
         if (!sessions.containsKey(sessionIdx)) {
-            sessions.put(sessionIdx, new HashMap<Integer, Trial>());
+            sessions.put(sessionIdx, new HashMap<>());
         }
         if (!sessions.get(sessionIdx).containsKey(trialIdx)) {
             sessions.get(sessionIdx).put(trialIdx, t);
@@ -98,6 +98,7 @@ public class SingleUnit {
                     }
                 }
                 return true;
+            case BY_AVERAGE2Hz_COMPAT:
             case BY_AVERAGE2Hz:
             case BY_AVERAGE1Hz:
                 int spkCount = 0;
@@ -110,7 +111,11 @@ public class SingleUnit {
                 }
                 double avgLength = firedTrialLengthSum / firedTrial;
                 double fr = type == ClassifyType.BY_AVERAGE1Hz ? 1d : 2d;
-                this.avgFR = (double) spkCount / trialCount / avgLength;
+                if (type == ClassifyType.BY_AVERAGE2Hz_COMPAT) {
+                    this.avgFR = spkCount / trialCount / avgLength;
+                } else {
+                    this.avgFR = (double) spkCount / trialCount / avgLength;
+                }
                 return !(this.avgFR > fr); //2Hz
             case BY_AVERAGE2Hz_WHOLETRIAL:
                 return (unitSPKCount / recordingLength) < 2;

@@ -204,7 +204,9 @@ public class Spk2fr {
 //        this.wellTrainOnly = wellTrain;
 //    }
     public void setLeastFR(String type) {
-        if (type.equalsIgnoreCase("Average2Hz")) {
+        if (type.equalsIgnoreCase("Average2HzCOMPAT")) {
+            leastFR = ClassifyType.BY_AVERAGE2Hz_COMPAT;
+        }else if (type.equalsIgnoreCase("Average2Hz")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz;
         } else if (type.equalsIgnoreCase("Average2HzWhole")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz_WHOLETRIAL;
