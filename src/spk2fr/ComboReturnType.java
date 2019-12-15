@@ -10,18 +10,36 @@ package spk2fr;
  * @author zx
  */
 public class ComboReturnType {
-    final double[][][] FRData;
+
+    final double[][][] FRDataA;
+    final double[][][] FRDataB;
     final int[][] keyIdx;
     final double[][] evts;
 
     public ComboReturnType(double[][][] FRData, int[][] keyIdx, double[][] evts) {
-        this.FRData = FRData;
+        this.FRDataA = FRData;
+        this.FRDataB = FRData;
         this.keyIdx = keyIdx;
-        this.evts=evts;
+        this.evts = evts;
+    }
+
+    public ComboReturnType(double[][][] FRDataA, double[][][] FRDataB, int[][] keyIdx, double[][] evts) {
+        this.FRDataA = FRDataA;
+        this.FRDataB = FRDataB;
+        this.keyIdx = keyIdx;
+        this.evts = evts;
     }
 
     public double[][][] getFRData() {
-        return FRData;
+        return FRDataA;
+    }
+
+    public double[][][] getFRDataA() {
+        return FRDataA;
+    }
+
+    public double[][][] getFRDataB() {
+        return FRDataB;
     }
 
     public int[][] getKeyIdx() {
@@ -31,5 +49,5 @@ public class ComboReturnType {
     public double[][] getEvts() {
         return evts;
     }
-    
+
 }

@@ -10,6 +10,7 @@ import spk2fr.FP.FileParserDNMS;
 import spk2fr.FP.FileParserWJDNMS;
 import java.io.File;
 import java.util.ArrayList;
+import spk2fr.FP.FileParserPixels;
 import spk2fr.SU.SingleUnit;
 
 /**
@@ -33,7 +34,7 @@ public class Spk2fr {
 
     public double[][][][] getTS(double[][] evts, double[][] spk, String type, boolean byLick, boolean isCorrect) {
         keyIdx = new ArrayList<>();
-        suCriteria=new ArrayList<>();
+        suCriteria = new ArrayList<>();
         MiceDay miceDay = parseEvts(buildData(evts, spk, type));
         if (miceDay.getTetrodes().size() < 1 /* || (wellTrainOnly !=  && (wellTrainOnly == 1) != miceDay.isWellTrained()) */) {
             return null;
@@ -69,11 +70,10 @@ public class Spk2fr {
     public int[][] getKeyIdx() {
         return keyIdx.toArray(new int[keyIdx.size()][]);
     }
+
     public double[][] getCriteria() {
         return this.suCriteria.toArray(new double[suCriteria.size()][]);
     }
-    
-    
 
     MiceDay parseEvts(Data data) {
         FileParser fp;
@@ -81,6 +81,9 @@ public class Spk2fr {
             case "wj":
             case "wjdnms":
                 fp = new FileParserWJDNMS();
+                break;
+            case "pixels":
+                fp = new FileParserPixels();
                 break;
 
             case "opsuppress":
@@ -97,10 +100,10 @@ public class Spk2fr {
                 System.out.println("Unknown format:[" + data.getFormat() + "] , using default.");
                 fp = new FileParserDNMS();
         }
-        
+
 //        System.out.println("DBG FR "+leastFR+", ISI "+refracRatio);
         MiceDay miceDay = fp.processFile(data.getEvts(), data.getSpk()).removeSparseFiringUnits(leastFR, refracRatio);
-        
+
 //        MiceDay miceDay = fp.processFile(data.getEvts(), data.getSpk());
         return miceDay;
     }
@@ -121,7 +124,7 @@ public class Spk2fr {
         }
         ArrayList<double[][]> frs = new ArrayList<>();
         keyIdx = new ArrayList<>();
-        suCriteria=new ArrayList<>();
+        suCriteria = new ArrayList<>();
         for (Integer tetKey : miceDay.getTetrodeKeys()) {
             Tetrode tetrode = miceDay.getTetrode(tetKey);
             for (Integer unitKey : tetrode.getUnitKeys()) {
@@ -146,7 +149,7 @@ public class Spk2fr {
         }
         ArrayList<double[][]> frs = new ArrayList<>();
         keyIdx = new ArrayList<>();
-        suCriteria=new ArrayList<>();
+        suCriteria = new ArrayList<>();
         for (Integer tetKey : miceDay.getTetrodeKeys()) {
             Tetrode tetrode = miceDay.getTetrode(tetKey);
             for (Integer unitKey : tetrode.getUnitKeys()) {
@@ -162,6 +165,57 @@ public class Spk2fr {
         return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx(), data.getEvts());
     }
 
+    public ComboReturnType getAllFiringRate(Data data, String groupBy, float[] bin) {
+        MiceDay miceDay = parseEvts(data);
+        if (miceDay.getTetrodes().size() < 1) {
+            return null;
+        }
+        ArrayList<double[][]> frsA = new ArrayList<>();
+        ArrayList<double[][]> frsB = new ArrayList<>();
+        keyIdx = new ArrayList<>();
+        suCriteria = new ArrayList<>();
+        miceDay.getTetrodeKeys().forEach((tetKey) -> {
+            Tetrode tetrode = miceDay.getTetrode(tetKey);
+            tetrode.getUnitKeys().forEach((unitKey) -> {
+                SingleUnit unit = tetrode.getSingleUnit(unitKey);
+                double[][] rtnA = unit.getAllFR(miceDay, groupBy, bin, true);
+                double[][] rtnB = unit.getAllFR(miceDay, groupBy, bin, false);
+                if (null != rtnA && rtnA.length > 0 && null != rtnB && rtnB.length > 0) {
+                    keyIdx.add(new int[]{tetKey, unitKey});
+                    this.suCriteria.add(unit.getCriteria());
+                    frsA.add(rtnA);
+                    frsB.add(rtnB);
+                }
+            });
+        });
+        return new ComboReturnType(frsA.toArray(new double[frsA.size()][][]),
+                frsB.toArray(new double[frsB.size()][][]),
+                getKeyIdx(), data.getEvts());
+    }
+
+//        public ComboReturnType getAllFiringRate(Data data, String groupBy, float[] bin, boolean isS1) {
+//        MiceDay miceDay = parseEvts(data);
+//        if (miceDay.getTetrodes().size() < 1) {
+////                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
+//            return null;
+//        }
+//        ArrayList<double[][]> frs = new ArrayList<>();
+//        keyIdx = new ArrayList<>();
+//        suCriteria=new ArrayList<>();
+//        for (Integer tetKey : miceDay.getTetrodeKeys()) {
+//            Tetrode tetrode = miceDay.getTetrode(tetKey);
+//            for (Integer unitKey : tetrode.getUnitKeys()) {
+//                SingleUnit unit = tetrode.getSingleUnit(unitKey);
+//                double[][] rtn = unit.getAllFR(miceDay, groupBy, bin, isS1);
+//                if (null != rtn && rtn.length > 0) {
+//                    keyIdx.add(new int[]{tetKey, unitKey});
+//                    this.suCriteria.add(unit.getCriteria());
+//                    frs.add(rtn);
+//                }
+//            }
+//        }
+//        return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx(), data.getEvts());
+//    }
     public ArrayList<String> listFiles(String rootPath, String[] elements) {
         ArrayList<String> fileList = new ArrayList<>();
         if (rootPath == null) {
@@ -200,13 +254,10 @@ public class Spk2fr {
         return fileList;
     }
 
-//    public void setWellTrainOnly(boolean wellTrain) {
-//        this.wellTrainOnly = wellTrain;
-//    }
     public void setLeastFR(String type) {
         if (type.equalsIgnoreCase("Average2HzCOMPAT")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz_COMPAT;
-        }else if (type.equalsIgnoreCase("Average2Hz")) {
+        } else if (type.equalsIgnoreCase("Average2Hz")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz;
         } else if (type.equalsIgnoreCase("Average2HzWhole")) {
             leastFR = ClassifyType.BY_AVERAGE2Hz_WHOLETRIAL;

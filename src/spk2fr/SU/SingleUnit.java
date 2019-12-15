@@ -454,7 +454,7 @@ public class SingleUnit {
                     firingTSB[trialBIdx] = temp;
                 } else {
                     temp = new double[]{65535};
-                    firingTSB[trialAIdx] = temp;
+                    firingTSB[trialBIdx] = temp;
                 }
                 trialStartB[trialBIdx] = new double[]{trial.getBaseOnset()};
                 trialBIdx++;
@@ -549,11 +549,13 @@ public class SingleUnit {
                     break;
                 case "match":
                 case "matchincincorr":
+                case "matchall":
                 case "matchincincorrz":
                 case "matchz":
                 case "matcherrorz":
                 case "matcherror":
-                    processor = new ProcessorMatch(type.toLowerCase().contains("incorr"), type.toLowerCase().endsWith("z"), type.toLowerCase().contains("error"));
+                    processor = new ProcessorMatch(type.toLowerCase().contains("incorr") || type.toLowerCase().contains("all"),
+                            type.toLowerCase().endsWith("z"), type.toLowerCase().contains("error"));
                     break;
                 case "shuffle":
                 case "shuffleall":

@@ -33,14 +33,14 @@ public class BuildFileList {
                     String fPath = f.getAbsolutePath();
                     if (fPath.contains("_Event.mat")) {
                         String spktsPath = fPath.replaceAll("_\\d{6}_\\d{6}_Event.mat", "_Spk.mat");
-                        if (spktsPath.equals(fPath)){
+                        if (spktsPath.equals(fPath)) {
                             spktsPath = fPath.replaceAll("_Event.mat", "_Spk.mat");
                         }
 //                        System.out.println(fPath + ", " + spktsPath);
-                        if(new File(spktsPath).exists()){
-                            fileList.add(new String[]{spktsPath,fPath});
+                        if (new File(spktsPath).exists()) {
+                            fileList.add(new String[]{spktsPath, fPath});
                         }
-                        
+
                     }
                 }
             }
@@ -48,10 +48,35 @@ public class BuildFileList {
 
         return fileList;
     }
-    
-    public String[][] toString(LinkedList<String[]> fileList){
-        return fileList.toArray(new String[fileList.size()][]);
+
+    public LinkedList<String> buildPixels(String rootPath) {
+        LinkedList<String> fileList = new LinkedList<>();
+        if (rootPath == null) {
+            return null;
+        }
+        File root = new File(rootPath);
+        if (!root.exists()) {
+            return null;
+        }
+        File[] list = root.listFiles();
+
+        if (list != null) {
+            for (File f : list) {
+                if (f.isDirectory()) {
+                    fileList.addAll(buildPixels(f.getAbsolutePath()));
+                } else {
+                    String fPath = f.getAbsolutePath();
+                    if (fPath.contains("events.hdf5")) {
+                        fileList.add(fPath);
+                    }
+                }
+            }
+        }
+        return fileList;
     }
 
+    public String[][] toString(LinkedList<String[]> fileList) {
+        return fileList.toArray(new String[fileList.size()][]);
+    }
 
 }
