@@ -193,29 +193,6 @@ public class Spk2fr {
                 getKeyIdx(), data.getEvts());
     }
 
-//        public ComboReturnType getAllFiringRate(Data data, String groupBy, float[] bin, boolean isS1) {
-//        MiceDay miceDay = parseEvts(data);
-//        if (miceDay.getTetrodes().size() < 1) {
-////                || (wellTrainOnly != 2 && ((wellTrainOnly == 1) != miceDay.isWellTrained()))) {
-//            return null;
-//        }
-//        ArrayList<double[][]> frs = new ArrayList<>();
-//        keyIdx = new ArrayList<>();
-//        suCriteria=new ArrayList<>();
-//        for (Integer tetKey : miceDay.getTetrodeKeys()) {
-//            Tetrode tetrode = miceDay.getTetrode(tetKey);
-//            for (Integer unitKey : tetrode.getUnitKeys()) {
-//                SingleUnit unit = tetrode.getSingleUnit(unitKey);
-//                double[][] rtn = unit.getAllFR(miceDay, groupBy, bin, isS1);
-//                if (null != rtn && rtn.length > 0) {
-//                    keyIdx.add(new int[]{tetKey, unitKey});
-//                    this.suCriteria.add(unit.getCriteria());
-//                    frs.add(rtn);
-//                }
-//            }
-//        }
-//        return new ComboReturnType(frs.toArray(new double[frs.size()][][]), getKeyIdx(), data.getEvts());
-//    }
     public ArrayList<String> listFiles(String rootPath, String[] elements) {
         ArrayList<String> fileList = new ArrayList<>();
         if (rootPath == null) {
