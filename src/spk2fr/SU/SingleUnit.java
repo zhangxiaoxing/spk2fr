@@ -569,7 +569,8 @@ public class SingleUnit {
                     processor = new ProcessorLick(type.toLowerCase().contains("all"), type.toLowerCase().contains("error"), type.toLowerCase().endsWith("z"));
                     break;
                 case "everytrial":
-                    processor = new ProcessorEveryTrial(type.toLowerCase().endsWith("z"), !type.toLowerCase().contains("test"), type.toLowerCase().contains("all"));
+                case "everytrialall":
+                    processor = new ProcessorEveryTrial(type.toLowerCase().endsWith("z"), type.toLowerCase().contains("all"));
                     break;
                 default:
                     System.out.println(type + ": Unknown Processor Type");

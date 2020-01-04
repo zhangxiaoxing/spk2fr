@@ -6,6 +6,7 @@
 package spk2fr.SU;
 
 import java.util.ArrayList;
+
 /**
  *
  * @author zx
@@ -14,12 +15,11 @@ public class ProcessorEveryTrial extends Processor {
 
     boolean isZ;
     boolean incError;
-    boolean isSample;
 
-    public ProcessorEveryTrial(boolean isZ, boolean isSample, boolean incIncorr) {
+    public ProcessorEveryTrial(boolean isZ, boolean incIncorr) {
         this.isZ = isZ;
         this.incError = incIncorr;
-        this.isSample = isSample;
+
     }
 
     @Override
