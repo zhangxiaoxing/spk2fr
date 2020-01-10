@@ -178,13 +178,22 @@ public class Spk2fr {
             Tetrode tetrode = miceDay.getTetrode(tetKey);
             tetrode.getUnitKeys().forEach((unitKey) -> {
                 SingleUnit unit = tetrode.getSingleUnit(unitKey);
-                double[][] rtnA = unit.getAllFR(miceDay, groupBy, bin, true);
-                double[][] rtnB = unit.getAllFR(miceDay, groupBy, bin, false);
-                if (null != rtnA && rtnA.length > 0 && null != rtnB && rtnB.length > 0) {
-                    keyIdx.add(new int[]{tetKey, unitKey});
-                    this.suCriteria.add(unit.getCriteria());
-                    frsA.add(rtnA);
-                    frsB.add(rtnB);
+                if (groupBy.toLowerCase().startsWith("everytrial")) {
+                    double[][] rtnA = unit.getAllFR(miceDay, groupBy, bin, true);
+                    if (null != rtnA && rtnA.length > 0) {
+                        keyIdx.add(new int[]{tetKey, unitKey});
+                        this.suCriteria.add(unit.getCriteria());
+                        frsA.add(rtnA);
+                    }
+                } else {
+                    double[][] rtnA = unit.getAllFR(miceDay, groupBy, bin, true);
+                    double[][] rtnB = unit.getAllFR(miceDay, groupBy, bin, false);
+                    if (null != rtnA && rtnA.length > 0 && null != rtnB && rtnB.length > 0) {
+                        keyIdx.add(new int[]{tetKey, unitKey});
+                        this.suCriteria.add(unit.getCriteria());
+                        frsA.add(rtnA);
+                        frsB.add(rtnB);
+                    }
                 }
             });
         });

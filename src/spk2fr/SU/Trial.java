@@ -18,7 +18,7 @@ public class Trial {
     private EventType testOdor; //^^
     private EventType response;// 0=hit,1=miss;2=cr,3=false;
     private boolean isSet = false;
-    private ArrayList<Double> spks = new ArrayList<>();
+    final private ArrayList<Double> spks = new ArrayList<>();
     private double trialLength;
     private double baseOnset;
 

@@ -264,9 +264,9 @@ public class SingleUnit {
         pr.fillPoolsByType(this.trialPool);
         ArrayList<Trial> pool = isS1 ? pr.getTypeAPool() : pr.getTypeBPool();
         ArrayList<ArrayList<Double>> rasters = new ArrayList<>();
-        for (Trial t : pool) {
-            rasters.add(t.getSpikesList());
-        }
+        pool.forEach((trial) -> {
+            rasters.add(trial.getSpikesList());
+        });
 
         float binStart = bin[0];
         float binSize = bin[1];
